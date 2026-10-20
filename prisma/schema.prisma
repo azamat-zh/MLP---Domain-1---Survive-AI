@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// A "run" = one execution of the signal ingestion pipeline (live or fallback).
+model SignalRun {
+  id            String          @id @default(cuid())
+  createdAt     DateTime        @default(now())
+  live          Boolean // true = fetched from live APIs, false = seeded fallback
+  totalPostings Int
+  sources       String // JSON: [{ name, url, postings, ok }]
+  note          String?
+  snapshots     SignalSnapshot[]
+}
+
+// Per-skill momentum computed in one run. Source + date are always carried.
+model SignalSnapshot {
+  id              String    @id @default(cuid())
+  runId           String
+  run             SignalRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  skillSlug       String
+  postings        Int
+  recentPostings  Int
+  earlierPostings Int
+  frequency       Float // % of postings mentioning the skill
+  trend           Float // recent vs earlier ratio score 0-100
+  momentum        Float // blended 0-100
+  createdAt       DateTime  @default(now())
+
+  @@unique([runId, skillSlug])
+}
+
+// "Forecast changelog" — written like release notes whenever signals refresh.
+model ChangelogEntry {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  version   String
+  live      Boolean
+  summary   String
+  details   String // JSON: movers [{skill, delta, momentum}], run info
+}

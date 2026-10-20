@@ -1,0 +1,154 @@
+// ─── SkillCast shared types ────────────────────────────────────────────────
+
+export type Lang = 'en' | 'ms' | 'zh' | 'ru';
+export type ScenarioId = 'moderate' | 'accelerated';
+export type Persona = 'working-adult' | 'fresh-grad' | 'switcher' | 'tvet-student';
+export type PathType = 'work-with-ai' | 'pivot' | 'emerging';
+
+export interface SkillDef {
+  slug: string;
+  name: string;
+  category: string;
+  aliases: string[]; // lowercase keywords matched against live job postings
+  sdgTags: number[];
+  automationExposure: number; // 0-1, negative pressure
+  augmentationPotential: number; // 0-1, positive pressure
+  researchHorizon: number; // 0-100, curated + cited (WEF / Stanford AI Index)
+  seedMomentum: number; // fallback baseline when live fetch is unavailable
+}
+
+export interface RoleSkillReq {
+  skill: string; // skill slug
+  weight: number; // 0-1 relative importance in the role
+  minLevel: number; // 1-5 required proficiency
+}
+
+export interface RoleDef {
+  slug: string;
+  title: string;
+  tagline: string;
+  pathType: PathType;
+  category: string;
+  entryLevel: boolean; // internship-friendly
+  experience: 'entry' | 'mid' | 'senior';
+  automationExposure: number;
+  demandModerate: number; // scenario-adjusted demand index 0-100
+  demandAccelerated: number;
+  sdgTags: number[];
+  sdgMechanism: string; // WHY this role advances the goals (cited targets)
+  skills: RoleSkillReq[];
+  signalsNote: string; // how live trend signals feed this outlook
+}
+
+export interface CourseDef {
+  slug: string;
+  title: string;
+  provider: string;
+  url: string;
+  totalHours: number;
+  level: 'beginner' | 'intermediate' | 'advanced';
+  skills: string[];
+  free: boolean;
+  hrdClaimable: boolean; // claimable via registered HRD Corp training providers
+  formats: Array<'video' | 'text' | 'interactive' | 'project' | 'audio'>;
+  accessibility: string[];
+  certificate: boolean;
+  outcome: string; // "after this you will be able to ..."
+}
+
+export interface TeamMemberDef {
+  id: string;
+  name: string;
+  title: string;
+  dept: string;
+  persona: Persona;
+  years: number;
+  interests: string[];
+  skills: Record<string, number>; // slug -> level 0-5
+}
+
+export interface CuratedSignal {
+  id: string;
+  publisher: string;
+  title: string;
+  date: string;
+  url: string;
+  keyStats: Array<{ label: string; value: string }>;
+  usedFor: string;
+}
+
+// ─── Runtime (API) types ───────────────────────────────────────────────────
+
+export interface SkillSnapshot {
+  skillSlug: string;
+  postings: number;
+  recentPostings: number;
+  earlierPostings: number;
+  frequency: number;
+  trend: number;
+  momentum: number;
+}
+
+export interface SignalsPayload {
+  runId: string;
+  fetchedAt: string;
+  live: boolean;
+  totalPostings: number;
+  sources: Array<{ name: string; url: string; postings: number; ok: boolean; kind: string }>;
+  note?: string;
+  snapshots: SkillSnapshot[];
+  changelog: Array<{
+    id: string;
+    createdAt: string;
+    version: string;
+    live: boolean;
+    summary: string;
+    details: {
+      movers: Array<{ skill: string; delta: number; momentum: number }>;
+      postings: number;
+    };
+  }>;
+}
+
+export interface Profile {
+  persona: Persona | null;
+  years: number;
+  interests: string[];
+  budget: number; // hours/week available for learning
+  skills: Record<string, number>; // slug -> level 0-5
+  inclusion: {
+    dyslexia: boolean;
+    visual: boolean;
+    hearing: boolean;
+    mobility: boolean;
+    none: boolean;
+  };
+  objective: string; // Harada-style one-line objective
+  cvScrub: { items: number; kinds: string[] } | null;
+  intakeMode: 'cv' | 'form' | null;
+}
+
+export interface MatchFactor {
+  label: string;
+  value: number; // 0-1
+  weight: number;
+}
+
+export interface GapItem {
+  skill: string;
+  skillName: string;
+  userLevel: number;
+  minLevel: number;
+  weight: number;
+  momentum: number;
+  category: string;
+}
+
+export interface RoleMatch {
+  roleSlug: string;
+  score: number; // 0-100
+  factors: MatchFactor[];
+  gap: GapItem[];
+  demand: { moderate: number; accelerated: number };
+  pathwayWeeks: number;
+}
