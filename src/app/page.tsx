@@ -9,6 +9,7 @@ import { Landing } from '@/components/skillcast/landing';
 import { Onboarding } from '@/components/skillcast/onboarding';
 import { Dashboard } from '@/components/skillcast/dashboard';
 import { EmployerView } from '@/components/skillcast/employer';
+import { InstitutionView } from '@/components/skillcast/institution';
 import { SignalsView } from '@/components/skillcast/signalsview';
 
 // Hydration guard: server snapshot = false, client snapshot = true.
@@ -50,6 +51,8 @@ function Shell() {
           <Dashboard />
         ) : view === 'employer' ? (
           <EmployerView />
+        ) : view === 'institution' ? (
+          <InstitutionView />
         ) : (
           <SignalsView />
         )}

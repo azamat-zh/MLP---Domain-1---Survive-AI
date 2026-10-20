@@ -1,7 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { CloudSun, Languages, RotateCcw } from 'lucide-react';
+import { useSyncExternalStore } from 'react';
+import { useTheme } from 'next-themes';
+import { CloudSun, Languages, Moon, RotateCcw, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -21,14 +22,27 @@ import {
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
+// Hydration guard for theme-dependent icons (matches page.tsx pattern)
+const emptySubscribe = () => () => {};
+function useMounted() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+}
+
 export function Header() {
   const t = useT();
   const { view, setView, lang, setLang, onboarded, resetDemo } = useSkillCast();
+  const { theme, setTheme } = useTheme();
+  const mounted = useMounted();
 
   const views: Array<{ id: View; label: string; enabled: boolean }> = [
     { id: 'landing', label: t('nav.home'), enabled: true },
     { id: 'dashboard', label: t('nav.dashboard'), enabled: onboarded },
     { id: 'employer', label: t('nav.employer'), enabled: true },
+    { id: 'institution', label: t('nav.institution'), enabled: true },
     { id: 'signals', label: t('nav.signals'), enabled: true },
   ];
 
@@ -65,6 +79,28 @@ export function Header() {
         </nav>
 
         <div className="order-2 ml-auto flex items-center gap-2 sm:order-3">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  aria-label={t('nav.theme')}
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                >
+                  {mounted && theme === 'light' ? (
+                    <Moon className="h-4 w-4" aria-hidden />
+                  ) : (
+                    <Sun className="h-4 w-4" aria-hidden />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="text-xs">
+                {t('nav.theme')}: {mounted && theme === 'light' ? t('nav.theme.light') : t('nav.theme.dark')}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

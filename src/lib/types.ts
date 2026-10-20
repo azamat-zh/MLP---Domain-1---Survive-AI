@@ -5,6 +5,38 @@ export type ScenarioId = 'moderate' | 'accelerated';
 export type Persona = 'working-adult' | 'fresh-grad' | 'switcher' | 'tvet-student';
 export type PathType = 'work-with-ai' | 'pivot' | 'emerging';
 
+// ─── Three onboarding tracks ──────────────────────────────────────────────
+export type UserType = 'individual' | 'employer' | 'institution';
+
+export type EmployerIndustry =
+  | 'technology' | 'manufacturing' | 'banking' | 'logistics'
+  | 'public' | 'retail' | 'healthcare' | 'education';
+export type EmployerObjective = 'risk' | 'transition' | 'budget';
+export type EmployerBudget = 'free' | 'hrd';
+
+export interface EmployerProfile {
+  company: string;
+  industry: EmployerIndustry | '';
+  teamSize: number;
+  intake: 'batch' | 'matrix' | 'template' | '';
+  matrixUrl: string;
+  template: string;
+  objective: EmployerObjective | '';
+  timelineMonths: 3 | 6 | 12;
+  budgetPref: EmployerBudget | '';
+}
+
+export type StudyField = 'cs' | 'mecheng' | 'business';
+export type AdvisoryFocus = 'entry' | 'gaps' | 'sdg';
+
+export interface InstitutionProfile {
+  name: string;
+  field: StudyField | '';
+  intake: 'cv' | 'assessment' | '';
+  focus: AdvisoryFocus | '';
+  lowBandwidth: boolean;
+}
+
 export interface SkillDef {
   slug: string;
   name: string;
@@ -65,6 +97,23 @@ export interface TeamMemberDef {
   years: number;
   interests: string[];
   skills: Record<string, number>; // slug -> level 0-5
+}
+
+export interface DeptTemplate {
+  id: string;
+  labelKey: string; // i18n key, e.g. "Marketing Team of 10"
+  industry?: EmployerIndustry; // undefined = cross-industry template
+  totalStaff: number;
+  shownMembers: TeamMemberDef[];
+}
+
+export interface StudentDef {
+  id: string;
+  name: string;
+  year: string;
+  field: StudyField;
+  skills: Record<string, number>;
+  interests: string[];
 }
 
 export interface CuratedSignal {

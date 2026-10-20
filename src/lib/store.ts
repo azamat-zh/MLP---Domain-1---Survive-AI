@@ -2,19 +2,24 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Lang, Persona, Profile, ScenarioId } from '@/lib/types';
+import type {
+  EmployerProfile, InstitutionProfile, Lang, Persona, Profile, ScenarioId, UserType,
+} from '@/lib/types';
 
 // ─── Client state: view machine + profile + scenario + progress ────────────
 // The profile lives only in this browser (localStorage). No account, no
 // server-side personal data — privacy by design for the POC.
 
-export type View = 'landing' | 'onboarding' | 'dashboard' | 'employer' | 'signals';
+export type View = 'landing' | 'onboarding' | 'dashboard' | 'employer' | 'institution' | 'signals';
 
 interface SkillCastState {
   lang: Lang;
   view: View;
+  userType: UserType | null;
   scenario: ScenarioId;
   profile: Profile;
+  employer: EmployerProfile;
+  institution: InstitutionProfile;
   chosenRole: string | null;
   completedCourses: string[];
   onboarded: boolean;
@@ -22,8 +27,11 @@ interface SkillCastState {
 
   setLang: (l: Lang) => void;
   setView: (v: View) => void;
+  setUserType: (u: UserType | null) => void;
   setScenario: (s: ScenarioId) => void;
   setProfile: (p: Partial<Profile>) => void;
+  setEmployer: (p: Partial<EmployerProfile>) => void;
+  setInstitution: (p: Partial<InstitutionProfile>) => void;
   setSkillLevel: (slug: string, level: number) => void;
   setChosenRole: (slug: string | null) => void;
   toggleCourse: (slug: string) => void;
@@ -43,13 +51,36 @@ export const EMPTY_PROFILE: Profile = {
   intakeMode: null,
 };
 
+export const EMPTY_EMPLOYER: EmployerProfile = {
+  company: '',
+  industry: '',
+  teamSize: 10,
+  intake: '',
+  matrixUrl: '',
+  template: '',
+  objective: '',
+  timelineMonths: 6,
+  budgetPref: '',
+};
+
+export const EMPTY_INSTITUTION: InstitutionProfile = {
+  name: '',
+  field: '',
+  intake: '',
+  focus: '',
+  lowBandwidth: false,
+};
+
 export const useSkillCast = create<SkillCastState>()(
   persist(
     (set) => ({
       lang: 'en',
       view: 'landing',
+      userType: null,
       scenario: 'moderate',
       profile: EMPTY_PROFILE,
+      employer: EMPTY_EMPLOYER,
+      institution: EMPTY_INSTITUTION,
       chosenRole: null,
       completedCourses: [],
       onboarded: false,
@@ -57,8 +88,11 @@ export const useSkillCast = create<SkillCastState>()(
 
       setLang: (l) => set({ lang: l }),
       setView: (v) => set({ view: v }),
+      setUserType: (u) => set({ userType: u }),
       setScenario: (s) => set({ scenario: s }),
       setProfile: (p) => set((st) => ({ profile: { ...st.profile, ...p } })),
+      setEmployer: (p) => set((st) => ({ employer: { ...st.employer, ...p } })),
+      setInstitution: (p) => set((st) => ({ institution: { ...st.institution, ...p } })),
       setSkillLevel: (slug, level) =>
         set((st) => {
           const skills = { ...st.profile.skills };
@@ -77,7 +111,10 @@ export const useSkillCast = create<SkillCastState>()(
       resetDemo: () =>
         set({
           view: 'landing',
+          userType: null,
           profile: EMPTY_PROFILE,
+          employer: EMPTY_EMPLOYER,
+          institution: EMPTY_INSTITUTION,
           chosenRole: null,
           completedCourses: [],
           onboarded: false,
@@ -91,7 +128,10 @@ export const useSkillCast = create<SkillCastState>()(
       partialize: (s) => ({
         lang: s.lang,
         scenario: s.scenario,
+        userType: s.userType,
         profile: s.profile,
+        employer: s.employer,
+        institution: s.institution,
         chosenRole: s.chosenRole,
         completedCourses: s.completedCourses,
         onboarded: s.onboarded,
