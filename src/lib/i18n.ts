@@ -22,7 +22,6 @@ const en: Dict = {
   'landing.cta': 'Start my forecast',
   'landing.cta2': 'Employer view',
   'landing.badge': 'Proof of concept · synthetic demo profiles only',
-  'landing.stats.title': 'Why now (Malaysia)',
   'landing.steps.title': 'From who you are today to where you can be',
   'landing.step1': 'Tell us about yourself',
   'landing.step1d': 'CV upload with in-browser PII scrubbing, or a short form. Nothing personal leaves your browser.',
@@ -73,6 +72,7 @@ const en: Dict = {
   'onb.cv.useForm': 'Use the guided checklist instead',
   'onb.cv.backToCv': 'Use a CV instead',
   'onb.cv.analyse': 'Scrub & extract skills',
+  'onb.cv.skip': 'Skip AI analysis',
   'onb.cv.extracting': 'Analysing with AI…',
   'onb.cv.aiExtract':
     'Skills extracted with AI assistance — self-hosted Qwen on RunPod (EU region). Confirm and adjust the levels below.',
@@ -165,14 +165,6 @@ const en: Dict = {
   // ── Landing: entry tracks + fact-checked stats ──
   'landing.entry.title': 'Three ways in',
   'landing.entry.desc': 'One engine, three audiences — individuals, employers, and the TVET & university career centres advising them.',
-  'landing.stats.sourced': 'Every stat is fact-checked and linked to its source (last checked {date}).',
-  'facts.title': 'Fact-check ledger — every stat, sourced',
-  'facts.desc': 'Each claim used in this product with its publisher, date and verification status. Brief claims we could not independently re-verify are marked indicative and paired with verified alternatives (checked {date}).',
-  'facts.verified': 'Verified',
-  'facts.indicative': 'Indicative',
-  'facts.source': 'Source',
-  'facts.badge': 'Fact-checked ledger',
-
   // ── Onboarding: user-type tracks ──
   'onb.ut.q': 'Who are you planning for today?',
   'onb.ut.d': 'Pick a track — each has its own guided setup.',
@@ -458,13 +450,6 @@ const ms: Dict = {
   'landing.cta': 'Mulakan ramalan saya',
   'landing.cta2': 'Panduan majikan',
   'landing.badge': 'Bukti konsep · profil demo sintetik sahaja',
-  'landing.stats.title': 'Kenapa sekarang (Malaysia)',
-  'landing.stat1': 'profesional Malaysia sudah menggunakan alat AI di tempat kerja — Hays Asia Salary Guide 2025',
-  'landing.stat1v': '56%',
-  'landing.stat2': 'menerima latihan AI formal — Hays Asia Salary Guide 2025',
-  'landing.stat2v': 'hanya 26%',
-  'landing.stat3': 'pekerja perlu dilatih semula dalam 3–5 tahun — MOSTI',
-  'landing.stat3v': '600,000+',
   'landing.steps.title': 'Dari siapa anda hari ini ke arah mana anda boleh sampai',
   'landing.step1': 'Ceritakan tentang diri anda',
   'landing.step1d': 'Muat naik CV dengan penyingkiran data peribadi dalam pelayar, atau borang ringkas. Tiada data peribadi keluar dari pelayar anda.',
@@ -515,6 +500,7 @@ const ms: Dict = {
   'onb.cv.useForm': 'Guna senarai semak berpanduan',
   'onb.cv.backToCv': 'Guna CV pula',
   'onb.cv.analyse': 'Singkir & ekstrak kemahiran',
+  'onb.cv.skip': 'Langkau analisis AI',
   'onb.cv.extracting': 'Menganalisis dengan AI…',
   'onb.cv.aiExtract':
     'Kemahiran diekstrak dengan bantuan AI — Qwen tuan rumah sendiri di RunPod (rantau EU). Sahkan dan laraskan tahap di bawah.',
@@ -605,14 +591,6 @@ const ms: Dict = {
   // ── Landing: laluan masuk + statistik tersemak ──
   'landing.entry.title': 'Tiga cara masuk',
   'landing.entry.desc': 'Satu enjin, tiga audiens — individu, majikan, dan pusat kerjaya TVET & universiti yang menasihati mereka.',
-  'landing.stats.sourced': 'Setiap statistik disemak dan dipautkan kepada sumbernya (semakan terakhir {date}).',
-  'facts.title': 'Lejar semakan fakta — setiap statistik bersumber',
-  'facts.desc': 'Setiap dakwaan yang digunakan dalam produk ini dengan penerbit, tarikh dan status pengesahannya. Dakwaan taklimat yang tidak dapat disahkan semula ditanda sebagai indikatif dan digandingkan dengan alternatif tersahkan (disemak {date}).',
-  'facts.verified': 'Tersahkan',
-  'facts.indicative': 'Indikatif',
-  'facts.source': 'Sumber',
-  'facts.badge': 'Lejar semakan fakta',
-
   // ── Onboarding: laluan pengguna ──
   'onb.ut.q': 'Siapa yang anda rancangkan hari ini?',
   'onb.ut.d': 'Pilih laluan — setiap satu ada persediaan berpanduannya sendiri.',
@@ -898,13 +876,6 @@ const zh: Dict = {
   'landing.cta': '开始我的预测',
   'landing.cta2': '雇主视图',
   'landing.badge': '概念验证 · 仅使用合成演示档案',
-  'landing.stats.title': '为什么是现在（马来西亚）',
-  'landing.stat1': '的马来西亚职场人已在使用 AI 工具 —— Hays Asia 薪酬指南 2025',
-  'landing.stat1v': '56%',
-  'landing.stat2': '接受过正式 AI 培训 —— Hays Asia 薪酬指南 2025',
-  'landing.stat2v': '仅 26%',
-  'landing.stat3': '劳动者需在 3–5 年内再培训 —— MOSTI',
-  'landing.stat3v': '600,000+',
   'landing.steps.title': '从今天的你，到未来的你',
   'landing.step1': '介绍你自己',
   'landing.step1d': '上传简历（浏览器内脱敏）或填写简短表格。任何个人数据都不会离开你的浏览器。',
@@ -955,6 +926,7 @@ const zh: Dict = {
   'onb.cv.useForm': '改用引导式清单',
   'onb.cv.backToCv': '改用简历',
   'onb.cv.analyse': '脱敏并提取技能',
+  'onb.cv.skip': '跳过 AI 分析',
   'onb.cv.extracting': '正在使用 AI 分析…',
   'onb.cv.aiExtract':
     '技能由 AI 辅助提取——自托管 Qwen（托管于 RunPod，欧盟区域）。请在下方确认并调整等级。',
@@ -1044,14 +1016,6 @@ const zh: Dict = {
   // ── 首页：入口 + 已核实数据 ──
   'landing.entry.title': '三种入口',
   'landing.entry.desc': '一套引擎、三类用户——个人、雇主，以及为他们提供指导的TVET与大学就业中心。',
-  'landing.stats.sourced': '每个数据都经过核实并附来源链接（最近核实于 {date}）。',
-  'facts.title': '事实核查台账——每个数据皆有出处',
-  'facts.desc': '本产品使用的每条论断及其发布方、日期与核实状态。无法独立复核的简报数据标注为“参考性”，并配以已核实的替代数据（核实于 {date}）。',
-  'facts.verified': '已核实',
-  'facts.indicative': '参考性',
-  'facts.source': '来源',
-  'facts.badge': '事实核查台账',
-
   // ── 引导：用户路径 ──
   'onb.ut.q': '今天您想为谁规划？',
   'onb.ut.d': '选择一条路径——每条路径都有专属引导式设置。',
@@ -1337,13 +1301,6 @@ const ru: Dict = {
   'landing.cta': 'Построить мой прогноз',
   'landing.cta2': 'Взгляд работодателя',
   'landing.badge': 'Прототип · только синтетические демо-профили',
-  'landing.stats.title': 'Почему сейчас (Малайзия)',
-  'landing.stat1': 'малайзийских специалистов уже используют ИИ-инструменты — Hays Asia Salary Guide 2025',
-  'landing.stat1v': '56%',
-  'landing.stat2': 'получили формальное обучение по ИИ — Hays Asia Salary Guide 2025',
-  'landing.stat2v': 'всего 26%',
-  'landing.stat3': 'работников нуждаются в переобучении за 3–5 лет — MOSTI',
-  'landing.stat3v': '600 000+',
   'landing.steps.title': 'От того, кто вы сегодня, к тому, кем можете стать',
   'landing.step1': 'Расскажите о себе',
   'landing.step1d': 'Загрузите CV — личные данные удаляются прямо в браузере, — или заполните короткую форму.',
@@ -1394,6 +1351,7 @@ const ru: Dict = {
   'onb.cv.useForm': 'Использовать чек-лист',
   'onb.cv.backToCv': 'Использовать CV',
   'onb.cv.analyse': 'Очистить и извлечь навыки',
+  'onb.cv.skip': 'Пропустить анализ ИИ',
   'onb.cv.extracting': 'Анализ с помощью ИИ…',
   'onb.cv.aiExtract':
     'Навыки извлечены с помощью ИИ — собственный Qwen на RunPod (регион ЕС). Подтвердите и отредактируйте уровни ниже.',
@@ -1483,14 +1441,6 @@ const ru: Dict = {
   // ── Лендинг: треки + проверенные данные ──
   'landing.entry.title': 'Три входа',
   'landing.entry.desc': 'Один движок, три аудитории — работники, работодатели и центры карьеры TVET и университетов.',
-  'landing.stats.sourced': 'Каждый показатель проверен и со ссылкой на источник (проверено {date}).',
-  'facts.title': 'Реестр фактчека — у каждого числа есть источник',
-  'facts.desc': 'Каждое утверждение в продукте с издателем, датой и статусом проверки. Утверждения брифа, которые не удалось перепроверить, помечены как «индикативные» и дополнены проверенными альтернативами (проверено {date}).',
-  'facts.verified': 'Проверено',
-  'facts.indicative': 'Индикативно',
-  'facts.source': 'Источник',
-  'facts.badge': 'Реестр фактчека',
-
   // ── Онбординг: выбор трека ──
   'onb.ut.q': 'Для кого вы планируете сегодня?',
   'onb.ut.d': 'Выберите трек — у каждого свой мастер настройки.',

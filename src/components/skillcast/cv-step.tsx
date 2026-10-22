@@ -26,6 +26,11 @@ export function CvStep({ onDone }: { onDone: () => void }) {
   const [extractMode, setExtractMode] = useState<'llm' | 'deterministic' | null>(null);
   const [extractedSkills, setExtractedSkills] = useState<ExtractedSkill[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const intakeRef = useRef<{ scrubbedText: string; scrubMeta: { intakeMode: 'cv'; cvScrub: { items: number; kinds: string[] } } }>({
+    scrubbedText: '',
+    scrubMeta: { intakeMode: 'cv', cvScrub: { items: 0, kinds: [] } },
+  });
 
   const handleFile = (file: File) => {
     const reader = new FileReader();
@@ -43,11 +48,14 @@ export function CvStep({ onDone }: { onDone: () => void }) {
       intakeMode: 'cv' as const,
       cvScrub: { items: scrubbed.items.length, kinds: [...new Set(scrubbed.items.map((i) => i.kind))] },
     };
+    intakeRef.current = { scrubbedText: scrubbed.scrubbedText, scrubMeta };
+    abortRef.current = new AbortController();
     try {
       const res = await fetch('/api/extract-cv', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: scrubbed.scrubbedText }),
+        signal: abortRef.current.signal,
       });
       const data = (await res.json()) as { ok?: boolean; skills?: Record<string, number>; years?: number };
       if (data.ok && data.skills && Object.keys(data.skills).length > 0) {
@@ -75,6 +83,16 @@ export function CvStep({ onDone }: { onDone: () => void }) {
 
   const useForm = () => {
     setProfile({ intakeMode: 'form', cvScrub: null });
+    onDone();
+  };
+
+  // Skip the AI analysis: abort the in-flight extraction and proceed with the
+  // deterministic keyword extractor instead.
+  const skipAi = () => {
+    abortRef.current?.abort();
+    const { scrubbedText, scrubMeta } = intakeRef.current;
+    const skills = skillsFromCV(scrubbedText);
+    setProfile({ skills, ...scrubMeta });
     onDone();
   };
 
@@ -220,8 +238,12 @@ export function CvStep({ onDone }: { onDone: () => void }) {
             <p className="text-sm text-muted-foreground">{t('onb.skills.none')}</p>
           )}
 
-          <Button onClick={onDone} disabled={!skillsReady} className="w-full gap-2">
-            {t('common.next')}
+          <Button
+            onClick={extracting ? skipAi : onDone}
+            disabled={!extracting && !skillsReady}
+            className="w-full gap-2"
+          >
+            {extracting ? t('onb.cv.skip') : t('common.next')}
           </Button>
         </div>
       )}
