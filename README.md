@@ -63,6 +63,39 @@ DATABASE_URL=file:../db/custom.db
 - `RUNPOD_ENDPOINT_ID` (optional): Runpod serverless endpoint id; defaults to the deployed `skillcast-qwen` endpoint.
 - Optional: `PORT` (default 3000), `HOSTNAME` (default 0.0.0.0), `NEXT_TELEMETRY_DISABLED`.
 
+### Connect Runpod (optional — AI-assisted CV extraction)
+
+Runpod powers the only AI call site in the app: CV → structured profile extraction
+(`/api/extract-cv`), served by the shared team endpoint `skillcast-qwen`
+(self-hosted Qwen2.5-7B-Instruct on vLLM, region EU-RO-1). Without a key the app
+is fully functional — onboarding falls back to deterministic in-browser skill
+extraction.
+
+1. Create a Runpod account and API key: https://console.runpod.io -> Settings -> API Keys -> Create (General Purpose). Keys start with `rpa_`.
+2. Connect in one command:
+   ```bash
+   bun run setup:runpod        # prompts for your key, writes .env.local
+   ```
+   The script also sets `DATABASE_URL=file:../db/custom.db` (the committed `.env`
+   only carries the Linux sandbox path) and the shared `RUNPOD_ENDPOINT_ID`.
+   Manual alternative: copy `.env.example` to `.env.local` and fill in `RUNPOD_API_KEY`.
+3. Restart `bun run dev`.
+4. Verify: paste a CV in onboarding — you should see "Analysing with AI…" while
+   extracting, then the AI-assisted badge. Or:
+   ```bash
+   curl -X POST http://localhost:3000/api/extract-cv -H "Content-Type: application/json" \
+     -d '{"text":"A short CV mentioning Python and machine learning…"}'
+   ```
+   A response with `"ok": true, "fallback": false` means the endpoint is connected.
+
+Notes:
+- Use your own key (billing goes to your account) or a shared team key — either works.
+- The endpoint id is shared and already the default; do not deploy your own endpoint.
+- First call after ~5 min idle triggers a ~2 min cold start, which outlives the route's
+  50 s timeout — that call falls back to deterministic extraction, the next one is fast.
+- Privacy: the CV is scrubbed in the browser; only de-identified text reaches Runpod,
+  and it is never persisted by the endpoint.
+
 ## Available Scripts
 
 | Command | What it does |
@@ -71,6 +104,7 @@ DATABASE_URL=file:../db/custom.db
 | `bun run build` | Production build; copies static and public assets into `.next/standalone/` |
 | `bun run start` | Serve the standalone build (`NODE_ENV=production bun .next/standalone/server.js`) |
 | `bun run lint` | ESLint over the repo (flat config) |
+| `bun run setup:runpod` | Interactive: prompts for a Runpod API key and writes `.env.local` (see Connect Runpod below) |
 | `bun run db:push` | Push Prisma schema to the SQLite database (`--accept-data-loss`) |
 | `bun run db:generate` | Regenerate the Prisma client |
 | `bun run db:migrate` | Create and apply a new migration (`prisma migrate dev`) |
