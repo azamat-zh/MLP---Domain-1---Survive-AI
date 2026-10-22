@@ -117,9 +117,4 @@ docs/                  # documentation
 
 ## Documentation
 
-- `docs/README.md` - index of the documentation pages
-- `docs/architecture.md` - system architecture and data flow
-- `docs/data-model.md` - database schema, signal pipeline, matching math
-- `docs/development.md` - conventions and patterns for contributors
-- `docs/verification.md` - how this project is tested and verified
-- `AGENTS.md` - concise guidelines for AI assistants working in this repository
+See the [`docs/`](docs/) folder for architecture, data model, development conventions and the verification workflow. `AGENTS.md` at the repository root is a concise guide for AI assistants working in this repository.
