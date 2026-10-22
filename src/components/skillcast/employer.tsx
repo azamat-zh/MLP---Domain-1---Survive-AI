@@ -275,7 +275,7 @@ export function EmployerView() {
             <CardTitle className="text-base">{t('emp.plan')}</CardTitle>
             <CardDescription>
               <Select value={targetRole} onValueChange={setTargetRole}>
-                <SelectTrigger className="mt-1 h-8 w-full text-xs" aria-label="Target role">
+                <SelectTrigger className="mt-1 h-11 w-full rounded-xl text-sm" aria-label="Target role">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

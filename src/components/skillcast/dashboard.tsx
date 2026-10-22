@@ -7,6 +7,8 @@ import {
   Mail,
   RadioTower,
   ScrollText,
+  Radar as RadarIcon,
+  ListChecks,
 } from 'lucide-react';
 import {
   Radar,
@@ -39,6 +41,8 @@ import { PathwayTab } from './pathway';
 import { HaradaTab } from './harada';
 import { SdgTab } from './sdgview';
 import { DemandTab } from './demand';
+import { FutureRadarStep } from './onboarding';
+import { ProgressDashboard } from './progress-dashboard';
 
 export function Dashboard() {
   const t = useT();
@@ -88,8 +92,10 @@ export function Dashboard() {
         <TabsList className="flex h-auto w-full flex-wrap gap-1">
           <TabsTrigger value="overview" className="gap-1.5"><Activity className="h-4 w-4" aria-hidden />{t('tab.overview')}</TabsTrigger>
           <TabsTrigger value="matches" className="gap-1.5">{t('tab.matches')}</TabsTrigger>
+          <TabsTrigger value="radar" className="gap-1.5"><RadarIcon className="h-4 w-4" aria-hidden />Future Skills Radar</TabsTrigger>
           <TabsTrigger value="pathway" className="gap-1.5">{t('tab.pathway')}</TabsTrigger>
           <TabsTrigger value="harada" className="gap-1.5">{t('tab.harada')}</TabsTrigger>
+          <TabsTrigger value="progress" className="gap-1.5"><ListChecks className="h-4 w-4" aria-hidden />Progress</TabsTrigger>
           <TabsTrigger value="sdg" className="gap-1.5">{t('tab.sdg')}</TabsTrigger>
           <TabsTrigger value="demand" className="gap-1.5">{t('tab.demand')}</TabsTrigger>
         </TabsList>
@@ -100,11 +106,17 @@ export function Dashboard() {
         <TabsContent value="matches" className="mt-4">
           <MatchesTab matches={matches} />
         </TabsContent>
+        <TabsContent value="radar" className="mt-4">
+          <FutureRadarStep details={profile.extended ?? {}} onScenario={setScenario} />
+        </TabsContent>
         <TabsContent value="pathway" className="mt-4">
           <PathwayTab matches={matches} />
         </TabsContent>
         <TabsContent value="harada" className="mt-4">
           <HaradaTab matches={matches} />
+        </TabsContent>
+        <TabsContent value="progress" className="mt-4">
+          <ProgressDashboard matches={matches} />
         </TabsContent>
         <TabsContent value="sdg" className="mt-4">
           <SdgTab matches={matches} />
@@ -121,7 +133,7 @@ export function Dashboard() {
 
 function OverviewTab({ matches }: { matches: ReturnType<typeof matchAll> }) {
   const t = useT();
-  const { profile, chosenRole } = useSkillCast();
+  const { profile, chosenRole, completedCourses, setDashTab } = useSkillCast();
   const { data, loading, refreshing, refresh, momentumMap } = useSignals();
   const [emailOpen, setEmailOpen] = useState(false);
 
@@ -157,12 +169,31 @@ function OverviewTab({ matches }: { matches: ReturnType<typeof matchAll> }) {
     return c ?? null;
   }, [chosenRole, matches]);
 
+  const leadingMatch = matches[0];
+  const leadingRole = leadingMatch ? ROLE_MAP[leadingMatch.roleSlug] : null;
+  const leadingExposure = leadingRole ? (leadingRole.automationExposure < 0.3 ? 'Lower' : leadingRole.automationExposure < 0.6 ? 'Moderate' : 'Higher') : null;
+  const profileDetails = profile.extended;
+
   if (loading) {
     return <div className="py-20 text-center text-muted-foreground">Loading signals…</div>;
   }
 
   return (
     <div className="space-y-4">
+      <Card className="border-blue-100 bg-gradient-to-r from-white via-blue-50/70 to-indigo-50/70 shadow-sm">
+        <CardContent className="grid gap-5 pt-6 md:grid-cols-[1fr_auto] md:items-center">
+          <div>
+            <div className="flex flex-wrap items-center gap-2"><Badge variant="outline" className="border-blue-200 bg-white text-blue-700">Your career snapshot</Badge>{profileDetails?.employmentStatus && <Badge variant="secondary">{profileDetails.employmentStatus.replace('-', ' ')}</Badge>}</div>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">{profileDetails?.profession || 'Your future-ready career plan'}</h2>
+            <p className="mt-1 text-sm text-slate-600">{profileDetails?.specialization ? `${profileDetails.specialization} · ` : ''}{profile.skills ? Object.keys(profile.skills).length : 0} skills in your profile · {profile.budget} learning hours per week</p>
+            {leadingRole && <p className="mt-2 text-sm text-slate-700">Leading match: <strong>{leadingRole.title}</strong> · {leadingMatch.score}% fit based on your profile</p>}
+            {leadingRole && <p className="mt-1 text-sm text-slate-600">AI task exposure: {leadingExposure} · this describes task change, not a job replacement probability.</p>}
+            <p className="mt-1 text-sm text-slate-600">Learning: {completedCourses.length} completed course{completedCourses.length === 1 ? '' : 's'} · Next: {nextCourse?.title ?? 'review your pathway'}</p>
+          </div>
+          <div className="flex flex-wrap gap-2"><Button variant="outline" className="border-blue-200 text-blue-700" onClick={() => setDashTab('radar')}>Explore your radar</Button><Button variant="outline" className="border-blue-200 text-blue-700" onClick={() => setDashTab('pathway')}>Open pathway</Button><Button variant="outline" className="border-blue-200 text-blue-700" onClick={() => setDashTab('progress')}>View next steps</Button></div>
+        </CardContent>
+      </Card>
+
       {/* Forecast status */}
       <Card>
         <CardContent className="flex flex-wrap items-center gap-3 pt-6">
@@ -204,15 +235,15 @@ function OverviewTab({ matches }: { matches: ReturnType<typeof matchAll> }) {
             <CardTitle className="text-base">{t('ov.radar.title')}</CardTitle>
             <CardDescription>{t('ov.radar.desc')}</CardDescription>
           </CardHeader>
-          <CardContent className="h-80">
+          <CardContent className="h-80 min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData} outerRadius="72%">
                 <PolarGrid stroke="var(--border)" />
                 <PolarAngleAxis dataKey="skill" tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} />
                 <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
-                <Radar name="You" dataKey="you" stroke="#0d9488" fill="#0d9488" fillOpacity={0.35} />
-                <Radar name="Market" dataKey="market" stroke="#9ca3af" fill="#9ca3af" fillOpacity={0.15} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Radar name="You" dataKey="you" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.35} />
+                <Radar name="Market" dataKey="market" stroke="#a78bfa" fill="#a78bfa" fillOpacity={0.2} />
+                <Legend wrapperStyle={{ fontSize: 12, color: 'var(--muted-foreground)' }} />
               </RadarChart>
             </ResponsiveContainer>
           </CardContent>

@@ -17,7 +17,7 @@ import { LevelDots, useT } from './shared';
 // structured extraction. If the AI path fails, the deterministic keyword
 // extractor takes over — the flow always renders a result the user confirms.
 
-export function CvStep({ onDone }: { onDone: () => void }) {
+export function CvStep({ onDone, showContinue = true, preserveProfile = false }: { onDone: () => void; showContinue?: boolean; preserveProfile?: boolean }) {
   const t = useT();
   const { profile, setProfile } = useSkillCast();
   const [cvText, setCvText] = useState('');
@@ -52,12 +52,18 @@ export function CvStep({ onDone }: { onDone: () => void }) {
       const data = (await res.json()) as { ok?: boolean; skills?: Record<string, number>; years?: number };
       if (data.ok && data.skills && Object.keys(data.skills).length > 0) {
         setProfile({
-          skills: data.skills,
-          years: data.years && data.years > 0 ? data.years : profile.years,
+          skills: preserveProfile ? { ...profile.skills, ...data.skills } : data.skills,
+          years: preserveProfile ? profile.years : data.years && data.years > 0 ? data.years : profile.years,
           ...scrubMeta,
         });
         setExtractedSkills(
-          Object.entries(data.skills).map(([slug, level]) => ({ slug, level, strongContext: false }))
+          Object.entries(data.skills).map(([slug, level]) => ({
+            slug,
+            name: SKILL_MAP[slug]?.name ?? slug,
+            level,
+            mentions: 0,
+            strongContext: false,
+          }))
         );
         setExtractMode('llm');
         return;
@@ -68,7 +74,7 @@ export function CvStep({ onDone }: { onDone: () => void }) {
       setExtracting(false);
     }
     const skills = skillsFromCV(scrubbed.scrubbedText);
-    setProfile({ skills, ...scrubMeta });
+    setProfile({ skills: preserveProfile ? { ...profile.skills, ...skills } : skills, ...scrubMeta });
     setExtractedSkills(extractSkills(scrubbed.scrubbedText).slice(0, 10));
     setExtractMode('deterministic');
   };
@@ -220,9 +226,11 @@ export function CvStep({ onDone }: { onDone: () => void }) {
             <p className="text-sm text-muted-foreground">{t('onb.skills.none')}</p>
           )}
 
-          <Button onClick={onDone} disabled={!skillsReady} className="w-full gap-2">
-            {t('common.next')}
-          </Button>
+          {showContinue && (
+            <Button onClick={onDone} disabled={!skillsReady} className="w-full gap-2">
+              {t('common.next')}
+            </Button>
+          )}
         </div>
       )}
     </div>
