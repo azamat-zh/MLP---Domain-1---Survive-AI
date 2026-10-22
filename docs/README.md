@@ -10,6 +10,7 @@ Documentation for SkillCast, a Next.js POC for the Aiversecity Future-Ready Work
 | [data-model.md](data-model.md) | Prisma schema, signal ingestion pipeline, matching formula, Skill Momentum Index |
 | [development.md](development.md) | Conventions and patterns: imports, styling, theming, i18n, error handling |
 | [verification.md](verification.md) | Testing and QA: lint, build-tooling tests, browser golden path |
+| [ai-call-sites.md](ai-call-sites.md) | Where AI compute enters the app, why the forecast core stays deterministic, live signal sources |
 
 ## Related
 

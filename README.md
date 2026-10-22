@@ -5,7 +5,7 @@ A weather forecast for your career in the AI era. SkillCast is a proof-of-concep
 Key characteristics:
 
 - Deterministic core: all scoring and matching math is published, client-side, and deterministic. The LLM is used only for narration and CV-extraction proposals, always behind a deterministic fallback and a human confirm step.
-- Synthetic data only: profiles, team and sample CV are fabricated (competition rule); live signals come from Remotive and Arbeitnow, with curated fallback sources.
+- Synthetic data only: profiles, team and sample CV are fabricated (competition rule); live signals come from four free job APIs (Remotive, Arbeitnow, Greenhouse, Ashby — see `docs/ai-call-sites.md`), with curated fallback sources.
 - Privacy by design: the uploaded CV is scrubbed in the browser; only de-identified text reaches the self-hosted extraction endpoint (on a run-of-the-mill GPU cloud, no prompt persistence), and only skill levels persist.
 
 ## Features
@@ -59,6 +59,7 @@ DATABASE_URL=file:../db/custom.db
 
 - `DATABASE_URL` (required): SQLite file URL. Prisma resolves relative `file:` paths against `prisma/schema.prisma`, so the repository database `db/custom.db` is `file:../db/custom.db`. An absolute path works too.
 - The committed `.env` carries a sandbox path (`file:/home/z/my-project/db/custom.db`) that is invalid outside that sandbox (for example on Windows). Always override `DATABASE_URL` locally.
+- Troubleshooting: if the signals view errors with `Unable to open the database file` after changing `.env.local`, a stale compiled env snapshot may be cached — stop the dev server, delete the `.next` folder, and restart (`bun run dev` regenerates it).
 - `RUNPOD_API_KEY` (optional): API key used server-side to call the self-hosted vLLM endpoint for AI-assisted CV extraction. Without it, onboarding falls back to deterministic in-browser extraction. Keep it in `.env.local` (gitignored).
 - `RUNPOD_ENDPOINT_ID` (optional): Runpod serverless endpoint id; defaults to the deployed `skillcast-qwen` endpoint.
 - Optional: `PORT` (default 3000), `HOSTNAME` (default 0.0.0.0), `NEXT_TELEMETRY_DISABLED`.

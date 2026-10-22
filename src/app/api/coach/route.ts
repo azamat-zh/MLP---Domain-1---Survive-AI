@@ -1,16 +1,17 @@
 import { NextResponse } from 'next/server';
 import { SKILL_MAP } from '@/data/skills';
 import { ROLE_MAP } from '@/data/roles';
+import { runpodChat, RUNPOD_MODEL } from '@/lib/runpod';
 
 export const dynamic = 'force-dynamic';
 
-// ─── AI Career Coach (narration layer) ─────────────────────────────────────
-// AI DISCLOSURE: this endpoint uses the GLM language model via z-ai-web-dev-sdk
-// (server-side only). The LLM receives ONLY deterministic match output
-// (scores, factor breakdown, gap list, role metadata) — never the CV — and is
-// instructed not to invent jobs, courses, statistics or sources. If the call
-// fails, a structured template is returned; the deterministic core is
-// unaffected either way.
+// ─── AI Career Coach (narration layer — call site 2) ───────────────────────
+// AI DISCLOSURE: this endpoint narrates via the self-hosted vLLM endpoint on
+// RunPod (Qwen2.5-7B-Instruct, EU-RO-1). The LLM receives ONLY deterministic
+// match output (scores, factor breakdown, gap list, role metadata) — never
+// the CV — and is instructed not to invent jobs, courses, statistics or
+// sources. If the call fails (no API key, timeout, unusable output), a
+// structured template is returned; the deterministic core is unaffected.
 
 interface CoachRequest {
   roleSlug: string;
@@ -54,8 +55,6 @@ export async function POST(request: Request) {
   if (!role) return NextResponse.json({ error: 'unknown role' }, { status: 400 });
 
   try {
-    const { default: ZAI } = await import('z-ai-web-dev-sdk');
-    const zai = await ZAI.create();
     const facts = {
       role: role.title,
       tagline: role.tagline,
@@ -72,7 +71,7 @@ export async function POST(request: Request) {
       sdgGoals: role.sdgTags,
     };
 
-    const completion = await zai.chat.completions.create({
+    const narration = await runpodChat({
       messages: [
         {
           role: 'system',
@@ -85,11 +84,12 @@ export async function POST(request: Request) {
           content: JSON.stringify(facts),
         },
       ],
+      maxTokens: 350,
+      temperature: 0.7,
     });
 
-    const text = completion.choices?.[0]?.message?.content?.trim();
-    if (!text) throw new Error('empty completion');
-    return NextResponse.json({ narration: text, model: 'GLM (z-ai SDK)', fallback: false });
+    if (!narration) throw new Error('no narration from endpoint');
+    return NextResponse.json({ narration, model: RUNPOD_MODEL, fallback: false });
   } catch (e) {
     console.error('[api/coach] LLM unavailable, using fallback:', e);
     return NextResponse.json({

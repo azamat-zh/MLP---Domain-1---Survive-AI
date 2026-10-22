@@ -2,9 +2,11 @@ import { SKILLS } from '@/data/skills';
 import type { SkillSnapshot } from '@/lib/types';
 
 // ─── Signal ingestion + Skill Momentum Index (SMI) ────────────────────────
-// LIVE SOURCES (free, no key):
-//   · Remotive API   — https://remotive.com/api/remote-jobs
-//   · Arbeitnow API  — https://www.arbeitnow.com/api/job-board-api
+// LIVE SOURCES (free, no key, verified reachable):
+//   · Remotive API      — https://remotive.com/api/remote-jobs
+//   · Arbeitnow API     — https://www.arbeitnow.com/api/job-board-api
+//   · Greenhouse boards — https://boards-api.greenhouse.io/v1/boards/{board}/jobs
+//   · Ashby boards      — https://api.ashbyhq.com/posting-api/job-board/{org}
 // Pipeline: fetch postings → strip HTML → match skill aliases with word
 // boundaries → per-skill frequency + recent-vs-earlier trend → blend with
 // curated research-horizon weights (WEF FOJ 2025 / Stanford AI Index — see
@@ -27,8 +29,21 @@ export const SMI_WEIGHTS = { frequency: 0.5, trend: 0.3, horizon: 0.2 };
 const REMOTIVE_URL = 'https://remotive.com/api/remote-jobs?limit=150';
 const ARBEITNOW_URL = 'https://www.arbeitnow.com/api/job-board-api';
 
+// Verified public boards (checked 2026-10); each is a free, keyless API.
+const GREENHOUSE_BOARDS = ['stripe', 'datadog', 'airbnb'];
+const ASHBY_ORGS = ['notion', 'perplexity', 'mux'];
+
 function stripHtml(s: string): string {
   return s.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ');
+}
+
+async function fetchJson(url: string): Promise<unknown> {
+  const res = await fetch(url, {
+    signal: AbortSignal.timeout(15000),
+    headers: { 'User-Agent': 'SkillCast-POC/0.1 (open data research)' },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
 }
 
 export async function fetchRemotive(): Promise<Posting[]> {
@@ -61,6 +76,60 @@ export async function fetchArbeitnow(): Promise<Posting[]> {
   }));
 }
 
+// Greenhouse boards API: every open job per board, HTML content included.
+// Boards list is the verified subset; per-board cap keeps the ingest bounded.
+export async function fetchGreenhouse(): Promise<Posting[]> {
+  const out: Posting[] = [];
+  for (const board of GREENHOUSE_BOARDS) {
+    const json = (await fetchJson(
+      `https://boards-api.greenhouse.io/v1/boards/${board}/jobs?content=true`
+    )) as {
+      jobs?: Array<{ title?: string; content?: string; updated_at?: string }>;
+    };
+    for (const j of (json.jobs ?? []).slice(0, 250)) {
+      const d = j.updated_at;
+      out.push({
+        title: j.title ?? '',
+        company: board,
+        description: `[${board}] ${stripHtml(j.content ?? '')}`,
+        source: 'Greenhouse',
+        date: d ? new Date(d) : new Date(),
+      });
+    }
+  }
+  return out;
+}
+
+// Ashby job-board API: same idea, per-org boards. `descriptionPlain` exists on
+// newer endpoints; fall back to stripping descriptionHtml either way.
+export async function fetchAshby(): Promise<Posting[]> {
+  const out: Posting[] = [];
+  for (const org of ASHBY_ORGS) {
+    const json = (await fetchJson(
+      `https://api.ashbyhq.com/posting-api/job-board/${org}`
+    )) as {
+      jobs?: Array<{
+        title?: string;
+        descriptionHtml?: string;
+        descriptionPlain?: string;
+        updatedAt?: string;
+        createdAt?: string;
+      }>;
+    };
+    for (const j of (json.jobs ?? []).slice(0, 250)) {
+      const d = j.updatedAt ?? j.createdAt;
+      out.push({
+        title: j.title ?? '',
+        company: org,
+        description: `[${org}] ${stripHtml(j.descriptionHtml ?? j.descriptionPlain ?? '')}`,
+        source: 'Ashby',
+        date: d ? new Date(d) : new Date(),
+      });
+    }
+  }
+  return out;
+}
+
 function countMatches(text: string, aliases: string[]): number {
   let n = 0;
   for (const alias of aliases) {
@@ -83,6 +152,18 @@ export async function ingestLiveSignals(): Promise<IngestResult> {
   const attempts: Array<{ name: string; url: string; kind: string; fn: () => Promise<Posting[]> }> = [
     { name: 'Remotive Job API', url: REMOTIVE_URL, kind: 'live', fn: fetchRemotive },
     { name: 'Arbeitnow Job Board API', url: ARBEITNOW_URL, kind: 'live', fn: fetchArbeitnow },
+    {
+      name: 'Greenhouse Job Boards',
+      url: `https://boards-api.greenhouse.io/v1/boards/${GREENHOUSE_BOARDS.join('|')}/jobs`,
+      kind: 'live',
+      fn: fetchGreenhouse,
+    },
+    {
+      name: 'Ashby Job Boards',
+      url: `https://api.ashbyhq.com/posting-api/job-board/${ASHBY_ORGS.join('|')}`,
+      kind: 'live',
+      fn: fetchAshby,
+    },
   ];
 
   for (const src of attempts) {

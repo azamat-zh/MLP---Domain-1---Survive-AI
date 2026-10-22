@@ -37,7 +37,7 @@ const en: Dict = {
     'Every role and skill carries a mechanism: WHY it advances a specific SDG target (4.4, 8.2, 8.5 and friends). Your career choices show their own footprint.',
   'landing.privacy.title': 'Responsible data & AI',
   'landing.privacy.desc':
-    'Deterministic scoring — the published formula computes every match; an LLM (GLM) only narrates explanations and never invents jobs, courses or statistics. Demo uses synthetic profiles only, per competition rules.',
+    'Deterministic scoring — the published formula computes every match; an LLM (self-hosted Qwen2.5 on RunPod) only narrates explanations and never invents jobs, courses or statistics. Demo uses synthetic profiles only, per competition rules.',
 
   'onb.step': 'Step',
   'onb.of': 'of',
@@ -150,7 +150,7 @@ const en: Dict = {
   'match.choose': 'Follow this path',
   'match.chosen': 'Chosen path',
   'match.coach.title': 'AI career coach',
-  'match.coach.disclosure': 'Narration: GLM via z-ai SDK. It only explains deterministic scores — never changes them, never invents sources.',
+  'match.coach.disclosure': 'Narration: self-hosted Qwen2.5 on RunPod (EU region). It only explains deterministic scores — never changes them, never invents sources.',
   'match.coach.fallback': 'Narration unavailable — showing structured explanation (the deterministic core is unaffected).',
 
   // ── Theme + institution nav ──
@@ -411,7 +411,7 @@ const en: Dict = {
   'common.reset': 'Reset demo',
   'common.estimates': 'Estimates, not guarantees',
   'common.estimate': 'estimate',
-  'footer.disclosure': 'AI disclosure: match scores & momentum are computed by a published deterministic formula. Language model GLM is used only to narrate explanations. Demo profiles are synthetic, per competition rules. Data: public/open only.',
+  'footer.disclosure': 'AI disclosure: match scores & momentum are computed by a published deterministic formula. A self-hosted language model (Qwen2.5 on RunPod) is used only to narrate explanations. Demo profiles are synthetic, per competition rules. Data: public/open only.',
 };
 
 const ms: Dict = {
@@ -449,7 +449,7 @@ const ms: Dict = {
     'Setiap peranan dan kemahiran mempunyai mekanisme: MENGAPA ia memajukan sasaran SDG tertentu (4.4, 8.2, 8.5). Pilihan kerjaya anda menunjukkan jejaknya sendiri.',
   'landing.privacy.title': 'Data & AI yang bertanggungjawab',
   'landing.privacy.desc':
-    'Penskoran deterministik — formula yang diterbitkan mengira setiap padanan; model bahasa (GLM) hanya menerangkan dan tidak pernah mereka-reka pekerjaan, kursus atau statistik. Demo menggunakan profil sintetik sahaja.',
+    'Penskoran deterministik — formula yang diterbitkan mengira setiap padanan; model bahasa (Qwen2.5 tuan rumah sendiri di RunPod) hanya menerangkan dan tidak pernah mereka-reka pekerjaan, kursus atau statistik. Demo menggunakan profil sintetik sahaja.',
 
   'onb.step': 'Langkah',
   'onb.of': 'daripada',
@@ -560,7 +560,7 @@ const ms: Dict = {
   'match.choose': 'Ikuti laluan ini',
   'match.chosen': 'Laluan dipilih',
   'match.coach.title': 'Pembimbing kerjaya AI',
-  'match.coach.disclosure': 'Narasi: GLM melalui SDK z-ai. Hanya menerangkan skor deterministik — tidak mengubahnya.',
+  'match.coach.disclosure': 'Narasi: Qwen2.5 tuan rumah sendiri di RunPod (rantau EU). Hanya menerangkan skor deterministik — tidak mengubahnya, tidak mencipta sumber.',
   'match.coach.fallback': 'Narasi tidak tersedia — menunjukkan penerangan berstruktur (teras deterministik tetap terjejas sifar).',
 
   // ── Tema + nav institusi ──
@@ -821,7 +821,7 @@ const ms: Dict = {
   'common.reset': 'Set semula demo',
   'common.estimates': 'Anggaran, bukan jaminan',
   'common.estimate': 'anggaran',
-  'footer.disclosure': 'Pendedahan AI: skor padanan & momentum dikira oleh formula deterministik yang diterbitkan. Model bahasa GLM hanya untuk narasi penerangan. Profil demo adalah sintetik. Data: awam/terbuka sahaja.',
+  'footer.disclosure': 'Pendedahan AI: skor padanan & momentum dikira oleh formula deterministik yang diterbitkan. Model bahasa tuan rumah sendiri (Qwen2.5 di RunPod) hanya untuk narasi penerangan. Profil demo adalah sintetik. Data: awam/terbuka sahaja.',
 };
 
 const zh: Dict = {
@@ -859,7 +859,7 @@ const zh: Dict = {
     '每个角色和技能都带有机制说明：它为何推动特定 SDG 目标（4.4、8.2、8.5 等）。你的职业选择会展示自己的足迹。',
   'landing.privacy.title': '负责任的数据与 AI',
   'landing.privacy.desc':
-    '确定性评分——公布的公式计算每个匹配；语言模型（GLM）仅做叙述解释，绝不虚构职位、课程或统计数据。按竞赛规则，演示仅使用合成档案。',
+    '确定性评分——公布的公式计算每个匹配；语言模型（自托管 Qwen2.5，托管于 RunPod）仅做叙述解释，绝不虚构职位、课程或统计数据。按竞赛规则，演示仅使用合成档案。',
 
   'onb.step': '步骤',
   'onb.of': '/',
@@ -969,7 +969,7 @@ const zh: Dict = {
   'match.choose': '走这条路',
   'match.chosen': '已选路径',
   'match.coach.title': 'AI 职业教练',
-  'match.coach.disclosure': '叙述：GLM（z-ai SDK）。只解释确定性分数——绝不更改它们、绝不编造来源。',
+  'match.coach.disclosure': '叙述：自托管 Qwen2.5（托管于 RunPod，欧盟区域）。只解释确定性评分——绝不更改它们、绝不编造来源。',
   'match.coach.fallback': '叙述暂不可用——显示结构化解释（确定性核心不受影响）。',
 
   // ── 主题 + 院校导航 ──
@@ -1230,7 +1230,7 @@ const zh: Dict = {
   'common.reset': '重置演示',
   'common.estimates': '是估算，不是保证',
   'common.estimate': '估算',
-  'footer.disclosure': 'AI 披露：匹配分与动能由已公布的确定性公式计算。语言模型 GLM 仅用于叙述解释。按竞赛规则，演示档案为合成数据。仅使用公开/开放数据。',
+  'footer.disclosure': 'AI 披露：匹配分与动能由已公布的确定性公式计算。自托管语言模型（Qwen2.5，托管于 RunPod）仅用于叙述解释。按竞赛规则，演示档案为合成数据。仅使用公开/开放数据。',
 };
 
 const ru: Dict = {
@@ -1268,7 +1268,7 @@ const ru: Dict = {
     'У каждой роли и навыка есть механизм: ПОЧЕМУ он продвигает конкретную цель ЦУР (4.4, 8.2, 8.5 и др.). Ваши карьерные решения показывают собственный след.',
   'landing.privacy.title': 'Ответственные данные и ИИ',
   'landing.privacy.desc':
-    'Детерминированный скоринг — опубликованная формула считает каждый матч; языковая модель (GLM) лишь комментирует и никогда не выдумывает вакансии, курсы или статистику. Демо использует синтетические профили.',
+    'Детерминированный скоринг — опубликованная формула считает каждый матч; языковая модель (собственный Qwen2.5 на RunPod) лишь комментирует и никогда не выдумывает вакансии, курсы или статистику. Демо использует синтетические профили.',
 
   'onb.step': 'Шаг',
   'onb.of': 'из',
@@ -1378,7 +1378,7 @@ const ru: Dict = {
   'match.choose': 'Выбрать этот путь',
   'match.chosen': 'Выбранный путь',
   'match.coach.title': 'ИИ-карьерный коуч',
-  'match.coach.disclosure': 'Озвучка: GLM (z-ai SDK). Только комментирует детерминированные баллы — не меняет их и не выдумывает источники.',
+  'match.coach.disclosure': 'Озвучка: собственный Qwen2.5 на RunPod (регион ЕС). Только комментирует детерминированные баллы — не меняет их и не выдумывает источники.',
   'match.coach.fallback': 'Озвучка недоступна — показываем структурированное объяснение (ядро не пострадало).',
 
   // ── Тема + навигация ──
@@ -1639,7 +1639,7 @@ const ru: Dict = {
   'common.reset': 'Сбросить демо',
   'common.estimates': 'Оценки, не гарантии',
   'common.estimate': 'оценка',
-  'footer.disclosure': 'Раскрытие ИИ: баллы и импульс считает опубликованная детерминированная формула. Языковая модель GLM лишь озвучивает пояснения. Демо-профили синтетические. Только открытые данные.',
+  'footer.disclosure': 'Раскрытие ИИ: баллы и импульс считает опубликованная детерминированная формула. Собственная языковая модель (Qwen2.5 на RunPod) лишь озвучивает пояснения. Демо-профили синтетические. Только открытые данные.',
 };
 
 const DICTS: Record<Lang, Dict> = { en, ms, zh, ru };

@@ -1,20 +1,17 @@
 import { NextResponse } from 'next/server';
 import { SKILL_MAP } from '@/data/skills';
+import { runpodChat, RUNPOD_MODEL } from '@/lib/runpod';
 
 export const dynamic = 'force-dynamic';
 
 // ─── AI-assisted CV extraction (call site 1) ───────────────────────────────
 // The client scrubs PII in the browser first; this route only ever receives
-// de-identified text, which it forwards to a self-hosted vLLM endpoint on
-// RunPod (Qwen2.5-7B-Instruct) with strict JSON-object decoding — malformed
-// output cannot pass the response_format constraint, and the parsed result is
-// validated again here before use. On any failure (no API key, timeout, bad
-// output) the deterministic in-browser extractor takes over: the onboarding
-// flow always renders a result.
-
-const ENDPOINT_ID = process.env.RUNPOD_ENDPOINT_ID ?? '3sz0imio0udhna';
-const API_KEY = process.env.RUNPOD_API_KEY;
-const RUNPOD_URL = `https://api.runpod.ai/v2/${ENDPOINT_ID}/runsync`;
+// de-identified text, which it forwards to the shared self-hosted vLLM
+// endpoint on RunPod (Qwen2.5-7B-Instruct) with strict JSON-object decoding —
+// malformed output cannot pass the response_format constraint, and the parsed
+// result is validated again here before use. On any failure (no API key,
+// timeout, bad output) the deterministic in-browser extractor takes over: the
+// onboarding flow always renders a result.
 
 const SYSTEM_PROMPT =
   'You extract structured career data from a de-identified CV. ' +
@@ -101,14 +98,8 @@ function mapSkills(skills: unknown): Record<string, number> {
   return out;
 }
 
-function parseOutput(payload: unknown): ExtractCvResult | null {
+function parseOutput(content: string | null): ExtractCvResult | null {
   try {
-    const output = payload as {
-      status?: string;
-      output?: Array<{ choices?: Array<{ message?: { content?: string } }> }>;
-    };
-    if (output?.status !== 'COMPLETED') return null;
-    const content = output.output?.[0]?.choices?.[0]?.message?.content;
     if (!content) return null;
     const parsed = JSON.parse(content) as {
       skills?: unknown;
@@ -121,7 +112,7 @@ function parseOutput(payload: unknown): ExtractCvResult | null {
     return {
       ok: true,
       fallback: false,
-      model: 'Qwen2.5-7B-Instruct (vLLM on RunPod)',
+      model: RUNPOD_MODEL,
       skills: mapSkills(parsed.skills),
       years: clampYears(parsed.yearsOfExperience),
       roles: Array.isArray(parsed.roles)
@@ -156,7 +147,7 @@ export async function POST(request: Request) {
   }
 
   // No key configured → deterministic path (never call the endpoint unauthenticated).
-  if (!API_KEY) {
+  if (!process.env.RUNPOD_API_KEY) {
     return NextResponse.json({
       ok: false,
       fallback: true,
@@ -171,31 +162,16 @@ export async function POST(request: Request) {
   }
 
   try {
-    const res = await fetch(RUNPOD_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify({
-        input: {
-          messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
-            { role: 'user', content: text },
-          ],
-          max_tokens: 600,
-          temperature: 0,
-          response_format: { type: 'json_object' },
-        },
-      }),
-      signal: AbortSignal.timeout(50000),
+    const content = await runpodChat({
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: text },
+      ],
+      maxTokens: 600,
+      temperature: 0,
+      responseFormat: { type: 'json_object' },
     });
-
-    if (!res.ok) {
-      throw new Error(`RunPod endpoint responded ${res.status}`);
-    }
-    const payload: unknown = await res.json();
-    const result = parseOutput(payload);
+    const result = parseOutput(content);
     if (!result) throw new Error('unparseable or non-terminal response');
     return NextResponse.json(result);
   } catch (e) {

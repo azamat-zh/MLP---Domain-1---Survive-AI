@@ -19,7 +19,7 @@ Onboarding (CV) --scrubCV (in-browser)--> /api/extract-cv --Qwen on RunPod--> Pr
    (deterministic extractSkills if the LLM call fails)
 Profile --> Dashboard --matchAll(profile, momentumMap)--> RoleMatch list (props to tabs)
 /api/signals (GET, POST refresh) --ingestLiveSignals--> Prisma/SQLite --> SignalsPayload --> Dashboard
-Match facts --POST /api/coach--> GLM narration (or deterministic fallback)
+Match facts --POST /api/coach--> Qwen narration on RunPod (or deterministic fallback)
 ```
 
 ### Profile
@@ -30,7 +30,7 @@ The raw CV is scrubbed client-side (`scrubCV` in `src/lib/cv.ts`) — personally
 
 `SignalsProvider` (`src/components/skillcast/shared.tsx`) fetches `/api/signals` once on mount and exposes `refresh()` (POST). The route is the only code path that touches Prisma:
 
-1. `ingestLiveSignals()` (`src/lib/momentum.ts`) fetches Remotive and Arbeitnow postings with 15-second per-source timeouts and per-source try/catch.
+1. `ingestLiveSignals()` (`src/lib/momentum.ts`) fetches postings from four free sources — Remotive, Arbeitnow, Greenhouse boards (Stripe/Datadog/Airbnb) and Ashby boards (Notion/Perplexity/Mux) — with 15-second per-source timeouts and per-source try/catch.
 2. A `SignalRun` and `SignalSnapshot`s are persisted (10-minute staleness guard prevents re-ingest).
 3. The run is diffed against the previous run; skills whose momentum moved by at least 2 points produce a `ChangelogEntry`.
 4. If all live sources fail, `seedSnapshots()` serves curated fallback data (`src/data/curated.ts`).
@@ -41,7 +41,7 @@ Matching is client-side and deterministic: the Dashboard computes `matchAll(prof
 
 ### Coach
 
-`MatchCard` POSTs deterministic match facts (never CV text) to `/api/coach`. The route calls GLM through `z-ai-web-dev-sdk` (dynamic import, server-side only); on any failure it returns a deterministic `fallbackNarration` and the UI shows `fallback: true` with disclosure copy.
+`MatchCard` POSTs deterministic match facts (never CV text) to `/api/coach`. The route calls the shared self-hosted endpoint on RunPod (`runpodChat` in `src/lib/runpod.ts`, Qwen2.5-7B-Instruct, prose); on any failure it returns a deterministic `fallbackNarration` and the UI shows `fallback: true` with disclosure copy. See `ai-call-sites.md` for the full call-site map and rationale.
 
 ## API Routes
 
