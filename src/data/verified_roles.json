@@ -1,0 +1,19 @@
+[
+  {
+    "id": "role_ai_engineer",
+    "title": "AI Engineer",
+    "required_skills": ["Python", "PyTorch", "LLM", "RAG"],
+    "verified_courses": [
+      { "title": "Deep Learning Specialization", "platform": "Coursera", "url": "https://coursera.org" },
+      { "title": "Fullstack LLM Bootcamp", "platform": "Udemy", "url": "https://udemy.com" }
+    ]
+  },
+  {
+    "id": "role_data_analyst",
+    "title": "Data Analyst",
+    "required_skills": ["SQL", "Python", "Tableau", "Statistics"],
+    "verified_courses": [
+      { "title": "Google Data Analytics", "platform": "Coursera", "url": "https://coursera.org" }
+    ]
+  }
+]
