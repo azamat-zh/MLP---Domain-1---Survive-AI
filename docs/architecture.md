@@ -10,12 +10,13 @@ SkillCast is an SPA-shaped Next.js 16 (App Router) application. `src/app/page.ts
 - `employer` - team-gap heatmap (reruns matching per synthetic team member)
 - `signals` - live signal forecast view
 
-Everything in `src/app` and `src/components` is a client component except `src/app/layout.tsx` (server layout with `next-themes` provider and metadata) and the two API routes.
+Everything in `src/app` and `src/components` is a client component except `src/app/layout.tsx` (server layout with `next-themes` provider and metadata) and the three API routes.
 
 ## Data Flow
 
 ```
-Onboarding (CV) --scrubCV + extractSkills (in-browser)--> Profile (zustand + localStorage)
+Onboarding (CV) --scrubCV (in-browser)--> /api/extract-cv --Qwen on RunPod--> Profile (zustand + localStorage)
+   (deterministic extractSkills if the LLM call fails)
 Profile --> Dashboard --matchAll(profile, momentumMap)--> RoleMatch list (props to tabs)
 /api/signals (GET, POST refresh) --ingestLiveSignals--> Prisma/SQLite --> SignalsPayload --> Dashboard
 Match facts --POST /api/coach--> GLM narration (or deterministic fallback)
@@ -23,7 +24,7 @@ Match facts --POST /api/coach--> GLM narration (or deterministic fallback)
 
 ### Profile
 
-The CV is processed entirely client-side (`src/lib/cv.ts`): `scrubCV` removes personally identifiable information and `extractSkills` reads skill levels. The raw CV text is discarded; only skill levels persist. The profile lives in the zustand store (`useSkillCast` in `src/lib/store.ts`) and persists to `localStorage` under key `skillcast-poc` (transient `view`/`dashTab` fields are excluded via `partialize`).
+The raw CV is scrubbed client-side (`scrubCV` in `src/lib/cv.ts`) — personally identifiable information never leaves the browser. The de-identified text is then POSTed to `/api/extract-cv`, which calls the self-hosted vLLM endpoint on RunPod (Qwen2.5-7B-Instruct, strict JSON-object decoding) to extract skills, roles, tenure, education, certifications and languages. If that call fails (no `RUNPOD_API_KEY`, timeout, malformed output), the deterministic keyword extractor (`extractSkills` / `skillsFromCV`) takes over, so onboarding always renders a result. Extracted skill names are mapped onto the 40-skill taxonomy; names outside it are dropped. Only skill levels persist in the profile; the LLM output is a proposal the user confirms and edits in the UI. The profile lives in the zustand store (`useSkillCast` in `src/lib/store.ts`) and persists to `localStorage` under key `skillcast-poc` (transient `view`/`dashTab` fields are excluded via `partialize`).
 
 ### Signals
 
@@ -48,6 +49,7 @@ Matching is client-side and deterministic: the Dashboard computes `matchAll(prof
 | --- | --- | --- |
 | `/api/signals` | GET, POST | Read or refresh the signal pipeline; GET returns the `SignalsPayload`, POST triggers a re-ingest |
 | `/api/coach` | POST | Narrate deterministic match facts with GLM; falls back to a template |
+| `/api/extract-cv` | POST | Extract structured profile data (skills, roles, tenure, education, certs, languages) from de-identified CV text via self-hosted vLLM (Qwen) on RunPod; deterministic fallback on failure |
 
 ## Key Modules (`src/lib/`)
 

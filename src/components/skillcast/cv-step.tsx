@@ -6,20 +6,24 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { SAMPLE_CV } from '@/data/sample-cv';
-import { scrubCV, skillsFromCV, extractSkills } from '@/lib/cv';
+import { scrubCV, skillsFromCV, extractSkills, type ScrubReport } from '@/lib/cv';
 import { SKILL_MAP } from '@/data/skills';
 import { useSkillCast } from '@/lib/store';
 import { LevelDots, useT } from './shared';
 
 // ─── Step 3: CV intake with in-browser PII scrubbing ───────────────────────
-// The CV text never leaves this component: scrub → extract → discard.
-// Only the skill levels (and the scrub report) are written to the profile.
+// The raw CV never leaves this component: scrub in-browser, then send only the
+// de-identified text to /api/extract-cv (self-hosted Qwen on RunPod) for
+// structured extraction. If the AI path fails, the deterministic keyword
+// extractor takes over — the flow always renders a result the user confirms.
 
 export function CvStep({ onDone }: { onDone: () => void }) {
   const t = useT();
   const { profile, setProfile } = useSkillCast();
   const [cvText, setCvText] = useState('');
-  const [report, setReport] = useState<ReturnType<typeof scrubCV> | null>(null);
+  const [report, setReport] = useState<ScrubReport | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [extractMode, setExtractMode] = useState<'llm' | 'deterministic' | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (file: File) => {
@@ -28,15 +32,39 @@ export function CvStep({ onDone }: { onDone: () => void }) {
     reader.readAsText(file);
   };
 
-  const analyse = () => {
+  const analyse = async () => {
     const scrubbed = scrubCV(cvText);
     setReport(scrubbed);
-    const skills = skillsFromCV(scrubbed.scrubbedText);
-    setProfile({
-      skills,
-      intakeMode: 'cv',
+    setExtracting(true);
+    setExtractMode(null);
+    const scrubMeta = {
+      intakeMode: 'cv' as const,
       cvScrub: { items: scrubbed.items.length, kinds: [...new Set(scrubbed.items.map((i) => i.kind))] },
-    });
+    };
+    try {
+      const res = await fetch('/api/extract-cv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: scrubbed.scrubbedText }),
+      });
+      const data = (await res.json()) as { ok?: boolean; skills?: Record<string, number>; years?: number };
+      if (data.ok && data.skills && Object.keys(data.skills).length > 0) {
+        setProfile({
+          skills: data.skills,
+          years: data.years && data.years > 0 ? data.years : profile.years,
+          ...scrubMeta,
+        });
+        setExtractMode('llm');
+        return;
+      }
+    } catch {
+      // fall through to the deterministic extractor
+    } finally {
+      setExtracting(false);
+    }
+    const skills = skillsFromCV(scrubbed.scrubbedText);
+    setProfile({ skills, ...scrubMeta });
+    setExtractMode('deterministic');
   };
 
   const useForm = () => {
@@ -96,10 +124,11 @@ export function CvStep({ onDone }: { onDone: () => void }) {
 
       <Button
         onClick={analyse}
-        disabled={cvText.trim().length < 40}
+        disabled={cvText.trim().length < 40 || extracting}
         className="gap-2 bg-teal-700 text-white hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500"
       >
-        <ShieldCheck className="h-4 w-4" aria-hidden /> {t('onb.cv.analyse')}
+        <ShieldCheck className="h-4 w-4" aria-hidden />
+        {extracting ? t('onb.cv.extracting') : t('onb.cv.analyse')}
       </Button>
 
       {report && (
@@ -140,6 +169,13 @@ export function CvStep({ onDone }: { onDone: () => void }) {
               {report.scrubbedText.slice(0, 1500)}
             </pre>
           </details>
+
+          {/* Extraction source disclosure */}
+          {extractMode && (
+            <p className="text-xs text-muted-foreground">
+              {extractMode === 'llm' ? t('onb.cv.aiExtract') : t('onb.cv.deterministicExtract')}
+            </p>
+          )}
 
           {/* Extracted skills preview */}
           {extracted.length > 0 && (

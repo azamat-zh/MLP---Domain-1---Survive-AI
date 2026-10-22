@@ -73,6 +73,11 @@ const en: Dict = {
   'onb.cv.useForm': 'Use the guided checklist instead',
   'onb.cv.backToCv': 'Use a CV instead',
   'onb.cv.analyse': 'Scrub & extract skills',
+  'onb.cv.extracting': 'Analysing with AI…',
+  'onb.cv.aiExtract':
+    'Skills extracted with AI assistance — self-hosted Qwen on RunPod (EU region). Confirm and adjust the levels below.',
+  'onb.cv.deterministicExtract':
+    'Skills extracted by transparent keyword matching (AI unavailable). Confirm and adjust the levels below.',
   'scrub.title': 'Privacy scrubber report',
   'scrub.stripped': 'items of personal data stripped in your browser',
   'scrub.none': 'No personal data detected.',
@@ -480,6 +485,11 @@ const ms: Dict = {
   'onb.cv.useForm': 'Guna senarai semak berpanduan',
   'onb.cv.backToCv': 'Guna CV pula',
   'onb.cv.analyse': 'Singkir & ekstrak kemahiran',
+  'onb.cv.extracting': 'Menganalisis dengan AI…',
+  'onb.cv.aiExtract':
+    'Kemahiran diekstrak dengan bantuan AI — Qwen tuan rumah sendiri di RunPod (rantau EU). Sahkan dan laraskan tahap di bawah.',
+  'onb.cv.deterministicExtract':
+    'Kemahiran diekstrak melalui padanan kata kunci yang telus (AI tidak tersedia). Sahkan dan laraskan tahap di bawah.',
   'scrub.title': 'Laporan penyingkir privasi',
   'scrub.stripped': 'item data peribadi disingkirkan dalam pelayar anda',
   'scrub.none': 'Tiada data peribadi dikesan.',
@@ -885,6 +895,11 @@ const zh: Dict = {
   'onb.cv.useForm': '改用引导式清单',
   'onb.cv.backToCv': '改用简历',
   'onb.cv.analyse': '脱敏并提取技能',
+  'onb.cv.extracting': '正在使用 AI 分析…',
+  'onb.cv.aiExtract':
+    '技能由 AI 辅助提取——自托管 Qwen（托管于 RunPod，欧盟区域）。请在下方确认并调整等级。',
+  'onb.cv.deterministicExtract':
+    '技能通过透明关键词匹配提取（AI 不可用）。请在下方确认并调整等级。',
   'scrub.title': '隐私脱敏报告',
   'scrub.stripped': '项个人数据已在浏览器内剥离',
   'scrub.none': '未检测到个人数据。',
@@ -1289,6 +1304,11 @@ const ru: Dict = {
   'onb.cv.useForm': 'Использовать чек-лист',
   'onb.cv.backToCv': 'Использовать CV',
   'onb.cv.analyse': 'Очистить и извлечь навыки',
+  'onb.cv.extracting': 'Анализ с помощью ИИ…',
+  'onb.cv.aiExtract':
+    'Навыки извлечены с помощью ИИ — собственный Qwen на RunPod (регион ЕС). Подтвердите и отредактируйте уровни ниже.',
+  'onb.cv.deterministicExtract':
+    'Навыки извлечены прозрачным сопоставлением ключевых слов (ИИ недоступен). Подтвердите и отредактируйте уровни ниже.',
   'scrub.title': 'Отчёт очистки приватности',
   'scrub.stripped': 'элементов личных данных удалено в браузере',
   'scrub.none': 'Личные данные не обнаружены.',
