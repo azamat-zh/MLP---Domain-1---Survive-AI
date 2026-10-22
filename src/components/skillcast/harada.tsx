@@ -158,7 +158,7 @@ export function HaradaTab({ matches }: { matches: RoleMatch[] }) {
         {cell(t('harada.box.plan'), t('harada.plan.d'), (
           <ul className="space-y-1 text-sm">
             {planCourses.map((c) => (
-              <li key={c.id} className="truncate">
+              <li key={c.slug} className="truncate">
                 {c.title} <span className="text-muted-foreground">({c.provider})</span>
               </li>
             ))}

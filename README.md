@@ -57,9 +57,9 @@ Create `.env.local` (or edit `.env`) with at least:
 DATABASE_URL=file:../db/custom.db
 ```
 
-- `DATABASE_URL` (required): SQLite file URL. Prisma resolves relative `file:` paths against `prisma/schema.prisma`, so the repository database `db/custom.db` is `file:../db/custom.db`. An absolute path works too.
-- The committed `.env` carries a sandbox path (`file:/home/z/my-project/db/custom.db`) that is invalid outside that sandbox (for example on Windows). Always override `DATABASE_URL` locally.
-- Troubleshooting: if the signals view errors with `Unable to open the database file` after changing `.env.local`, a stale compiled env snapshot may be cached — stop the dev server, delete the `.next` folder, and restart (`bun run dev` regenerates it).
+- `DATABASE_URL` (optional): SQLite file URL. A relative (or missing) value resolves at startup in `src/lib/db.ts` to the repository's `db/custom.db` — this works identically in dev and the standalone production build. Use an absolute path (e.g. `file:/app/db/custom.db`) to point elsewhere.
+- `.env` and `db/custom.db` are gitignored runtime state. A leftover local `.env` may carry an invalid sandbox path (`file:/home/z/my-project/db/custom.db`); put your real values in `.env.local` (`bun run setup:runpod` does this). First run: `bun run db:push` creates the local database; the signals view falls back to the seeded snapshot until a live refresh.
+- Troubleshooting: if the signals view errors with `Unable to open the database file`, check for an inherited `DATABASE_URL` environment variable — an exported or IDE-injected value overrides every `.env` file. `echo $DATABASE_URL` (or `env | grep DATABASE_URL`) reveals one; unset it or start with `DATABASE_URL=file:../db/custom.db bun run dev`.
 - `RUNPOD_API_KEY` (optional): API key used server-side to call the self-hosted vLLM endpoint for AI-assisted CV extraction. Without it, onboarding falls back to deterministic in-browser extraction. Keep it in `.env.local` (gitignored).
 - `RUNPOD_ENDPOINT_ID` (optional): Runpod serverless endpoint id; defaults to the deployed `skillcast-qwen` endpoint.
 - Optional: `PORT` (default 3000), `HOSTNAME` (default 0.0.0.0), `NEXT_TELEMETRY_DISABLED`.

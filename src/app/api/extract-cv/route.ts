@@ -138,8 +138,15 @@ export async function POST(request: Request) {
   let text: string;
   try {
     const body = (await request.json()) as { text?: unknown };
-    if (typeof body.text !== 'string' || body.text.trim().length < 40) {
-      return NextResponse.json({ error: 'invalid body: text (string, >=40 chars) required' }, { status: 400 });
+    if (
+      typeof body.text !== 'string' ||
+      body.text.trim().length < 40 ||
+      body.text.length > 20000
+    ) {
+      return NextResponse.json(
+        { error: 'invalid body: text (string, 40-20000 chars) required' },
+        { status: 400 }
+      );
     }
     text = body.text;
   } catch {

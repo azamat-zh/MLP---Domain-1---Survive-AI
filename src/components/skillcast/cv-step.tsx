@@ -65,7 +65,13 @@ export function CvStep({ onDone }: { onDone: () => void }) {
           ...scrubMeta,
         });
         setExtractedSkills(
-          Object.entries(data.skills).map(([slug, level]) => ({ slug, level, strongContext: false }))
+          Object.entries(data.skills).map(([slug, level]) => ({
+            slug,
+            level,
+            strongContext: false,
+            name: SKILL_MAP[slug]?.name ?? slug,
+            mentions: 0,
+          }))
         );
         setExtractMode('llm');
         return;

@@ -26,7 +26,10 @@ export interface Posting {
 
 export const SMI_WEIGHTS = { frequency: 0.5, trend: 0.3, horizon: 0.2 };
 
-const REMOTIVE_URL = 'https://remotive.com/api/remote-jobs?limit=150';
+// Remotive caps responses at 10 jobs regardless of the limit parameter
+// (verified 2026-10) — the endpoint is fetched without parameters and the
+// source chip honestly shows its contribution.
+const REMOTIVE_URL = 'https://remotive.com/api/remote-jobs';
 const ARBEITNOW_URL = 'https://www.arbeitnow.com/api/job-board-api';
 
 // Verified public boards (checked 2026-10); each is a free, keyless API.
@@ -61,19 +64,35 @@ export async function fetchRemotive(): Promise<Posting[]> {
   }));
 }
 
+// Arbeitnow serves one page per request; read three pages so the corpus is not
+// a fixed single window from the dominant source.
 export async function fetchArbeitnow(): Promise<Posting[]> {
-  const res = await fetch(ARBEITNOW_URL, { signal: AbortSignal.timeout(15000) });
-  if (!res.ok) throw new Error(`Arbeitnow ${res.status}`);
-  const json = (await res.json()) as {
-    data?: Array<{ title: string; company_name?: string; description?: string; created_at?: number }>;
-  };
-  return (json.data ?? []).map((j) => ({
-    title: j.title ?? '',
-    company: j.company_name ?? '—',
-    description: stripHtml(j.description ?? ''),
-    source: 'Arbeitnow',
-    date: j.created_at ? new Date(j.created_at * 1000) : new Date(),
-  }));
+  const out: Posting[] = [];
+  for (let page = 1; page <= 3; page++) {
+    const url = page === 1 ? ARBEITNOW_URL : `${ARBEITNOW_URL}?page=${page}`;
+    let json: { data?: Array<{ title: string; company_name?: string; description?: string; created_at?: number }> };
+    if (page === 1) {
+      const res = await fetch(ARBEITNOW_URL, { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) throw new Error(`Arbeitnow ${res.status}`);
+      json = await res.json();
+    } else {
+      try {
+        json = (await fetchJson(url)) as typeof json;
+      } catch {
+        break; // later pages are optional — keep what page 1 delivered
+      }
+    }
+    const list = (json?.data ?? []).map((j) => ({
+      title: j.title ?? '',
+      company: j.company_name ?? '—',
+      description: stripHtml(j.description ?? ''),
+      source: 'Arbeitnow',
+      date: j.created_at ? new Date(j.created_at * 1000) : new Date(),
+    }));
+    if (list.length === 0) break;
+    out.push(...list);
+  }
+  return out;
 }
 
 // Greenhouse boards API: every open job per board, HTML content included.

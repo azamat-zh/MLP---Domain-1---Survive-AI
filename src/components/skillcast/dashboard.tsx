@@ -237,8 +237,8 @@ function OverviewTab({ matches }: { matches: ReturnType<typeof matchAll> }) {
                 <PolarGrid stroke="var(--border)" />
                 <PolarAngleAxis dataKey="skill" tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} />
                 <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
-                <Radar name="You" dataKey="you" stroke="#0d9488" fill="#0d9488" fillOpacity={0.35} />
-                <Radar name="Market" dataKey="market" stroke="#9ca3af" fill="#9ca3af" fillOpacity={0.15} />
+                <Radar name={t('ov.radar.you')} dataKey="you" stroke="#0d9488" fill="#0d9488" fillOpacity={0.35} />
+                <Radar name={t('ov.radar.market')} dataKey="market" stroke="#9ca3af" fill="#9ca3af" fillOpacity={0.15} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
               </RadarChart>
             </ResponsiveContainer>

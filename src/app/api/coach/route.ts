@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { SKILL_MAP } from '@/data/skills';
 import { ROLE_MAP } from '@/data/roles';
 import { runpodChat, RUNPOD_MODEL } from '@/lib/runpod';
@@ -13,18 +14,31 @@ export const dynamic = 'force-dynamic';
 // sources. If the call fails (no API key, timeout, unusable output), a
 // structured template is returned; the deterministic core is unaffected.
 
-interface CoachRequest {
-  roleSlug: string;
-  score: number;
-  factors: Array<{ label: string; value: number }>;
-  gap: Array<{ skill: string; userLevel: number; minLevel: number; momentum: number }>;
-  scenario: 'moderate' | 'accelerated';
-  lang: 'en' | 'ms' | 'zh' | 'ru';
-  mode?: 'match' | 'harada';
-  pathwayWeeks?: number;
-  budget?: number;
-  courses?: string[];
-}
+// Validated request contract. Earlier this route read req.factors / req.gap
+// unguarded: a partially-formed body (missing factors or gap) threw inside the
+// error handler itself, producing a raw 500 instead of a clean 400.
+const CoachBody = z.object({
+  roleSlug: z.string().min(1),
+  score: z.number().min(0).max(100),
+  factors: z.array(z.object({ label: z.string(), value: z.number() })).default([]),
+  gap: z
+    .array(
+      z.object({
+        skill: z.string(),
+        userLevel: z.number(),
+        minLevel: z.number(),
+        momentum: z.number(),
+      })
+    )
+    .default([]),
+  scenario: z.enum(['moderate', 'accelerated']).default('moderate'),
+  lang: z.enum(['en', 'ms', 'zh', 'ru']).default('en'),
+  mode: z.enum(['match', 'harada']).optional(),
+  pathwayWeeks: z.number().optional(),
+  budget: z.number().optional(),
+  courses: z.array(z.string()).optional(),
+});
+type CoachRequest = z.infer<typeof CoachBody>;
 
 const LANG_INSTRUCTION: Record<string, string> = {
   en: 'Reply in English.',
@@ -48,7 +62,7 @@ function fallbackNarration(req: CoachRequest): string {
       ` SDG: ${(role?.sdgTags ?? []).join(', ')}.`
     );
   }
-  const strongest = [...req.factors].sort((a, b) => b.value - a.value)[0];
+  const strongest = [...req.factors].sort((a, b) => b.value - a.value)[0] ?? { label: 'overall fit', value: req.score / 100 };
   const g = topGap
     ? ` The priority gap is ${SKILL_MAP[topGap.skill]?.name ?? topGap.skill} (level ${topGap.userLevel} of ${topGap.minLevel} needed).`
     : '';
@@ -62,7 +76,11 @@ function fallbackNarration(req: CoachRequest): string {
 export async function POST(request: Request) {
   let req: CoachRequest;
   try {
-    req = (await request.json()) as CoachRequest;
+    const parsed = CoachBody.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'invalid body', details: parsed.error.flatten() }, { status: 400 });
+    }
+    req = parsed.data;
   } catch {
     return NextResponse.json({ error: 'invalid body' }, { status: 400 });
   }
