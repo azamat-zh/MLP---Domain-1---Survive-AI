@@ -3,14 +3,24 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
-  EmployerProfile, InstitutionProfile, Lang, Persona, Profile, ScenarioId, UserType,
+  EmployerProfile,
+  InstitutionProfile,
+  Lang,
+  Persona,
+  Profile,
+  ScenarioId,
+  UserType,
 } from '@/lib/types';
 
-// ─── Client state: view machine + profile + scenario + progress ────────────
-// The profile lives only in this browser (localStorage). No account, no
-// server-side personal data — privacy by design for the POC.
+export type View =
+  | 'landing'
+  | 'onboarding'
+  | 'dashboard'
+  | 'employer'
+  | 'institution'
+  | 'signals';
 
-export type View = 'landing' | 'onboarding' | 'dashboard' | 'employer' | 'institution' | 'signals';
+type HaradaTaskStatus = 'todo' | 'in_progress' | 'done';
 
 interface SkillCastState {
   lang: Lang;
@@ -22,6 +32,7 @@ interface SkillCastState {
   institution: InstitutionProfile;
   chosenRole: string | null;
   completedCourses: string[];
+  haradaTaskStatus: Record<string, HaradaTaskStatus>;
   onboarded: boolean;
   dashTab: string;
 
@@ -35,6 +46,10 @@ interface SkillCastState {
   setSkillLevel: (slug: string, level: number) => void;
   setChosenRole: (slug: string | null) => void;
   toggleCourse: (slug: string) => void;
+  setHaradaTaskStatus: (
+    taskId: string,
+    status: HaradaTaskStatus,
+  ) => void;
   resetDemo: () => void;
   setDashTab: (tab: string) => void;
 }
@@ -45,7 +60,13 @@ export const EMPTY_PROFILE: Profile = {
   interests: [],
   budget: 5,
   skills: {},
-  inclusion: { dyslexia: false, visual: false, hearing: false, mobility: false, none: true },
+  inclusion: {
+    dyslexia: false,
+    visual: false,
+    hearing: false,
+    mobility: false,
+    none: true,
+  },
   objective: '',
   cvScrub: null,
   intakeMode: null,
@@ -83,31 +104,69 @@ export const useSkillCast = create<SkillCastState>()(
       institution: EMPTY_INSTITUTION,
       chosenRole: null,
       completedCourses: [],
+      haradaTaskStatus: {},
       onboarded: false,
       dashTab: 'overview',
 
       setLang: (l) => set({ lang: l }),
+
       setView: (v) => set({ view: v }),
+
       setUserType: (u) => set({ userType: u }),
+
       setScenario: (s) => set({ scenario: s }),
-      setProfile: (p) => set((st) => ({ profile: { ...st.profile, ...p } })),
-      setEmployer: (p) => set((st) => ({ employer: { ...st.employer, ...p } })),
-      setInstitution: (p) => set((st) => ({ institution: { ...st.institution, ...p } })),
+
+      setProfile: (p) =>
+        set((st) => ({
+          profile: { ...st.profile, ...p },
+        })),
+
+      setEmployer: (p) =>
+        set((st) => ({
+          employer: { ...st.employer, ...p },
+        })),
+
+      setInstitution: (p) =>
+        set((st) => ({
+          institution: { ...st.institution, ...p },
+        })),
+
       setSkillLevel: (slug, level) =>
         set((st) => {
           const skills = { ...st.profile.skills };
-          if (level <= 0) delete skills[slug];
-          else skills[slug] = level;
-          return { profile: { ...st.profile, skills } };
+
+          if (level <= 0) {
+            delete skills[slug];
+          } else {
+            skills[slug] = level;
+          }
+
+          return {
+            profile: { ...st.profile, skills },
+          };
         }),
-      setChosenRole: (slug) => set({ chosenRole: slug }),
+
+      setChosenRole: (slug) =>
+        set({ chosenRole: slug }),
+
       toggleCourse: (slug) =>
         set((st) => ({
           completedCourses: st.completedCourses.includes(slug)
             ? st.completedCourses.filter((c) => c !== slug)
             : [...st.completedCourses, slug],
         })),
-      setDashTab: (tab) => set({ dashTab: tab }),
+
+      setHaradaTaskStatus: (taskId, status) =>
+        set((st) => ({
+          haradaTaskStatus: {
+            ...st.haradaTaskStatus,
+            [taskId]: status,
+          },
+        })),
+
+      setDashTab: (tab) =>
+        set({ dashTab: tab }),
+
       resetDemo: () =>
         set({
           view: 'landing',
@@ -117,6 +176,7 @@ export const useSkillCast = create<SkillCastState>()(
           institution: EMPTY_INSTITUTION,
           chosenRole: null,
           completedCourses: [],
+          haradaTaskStatus: {},
           onboarded: false,
           scenario: 'moderate',
           dashTab: 'overview',
@@ -134,21 +194,49 @@ export const useSkillCast = create<SkillCastState>()(
         institution: s.institution,
         chosenRole: s.chosenRole,
         completedCourses: s.completedCourses,
+        haradaTaskStatus: s.haradaTaskStatus,
         onboarded: s.onboarded,
       }),
     },
   ),
 );
 
-// Personas for onboarding UI
-export const PERSONAS: Array<{ id: Persona; labelKey: string; descKey: string }> = [
-  { id: 'working-adult', labelKey: 'persona.working-adult', descKey: 'persona.working-adult.d' },
-  { id: 'fresh-grad', labelKey: 'persona.fresh-grad', descKey: 'persona.fresh-grad.d' },
-  { id: 'switcher', labelKey: 'persona.switcher', descKey: 'persona.switcher.d' },
-  { id: 'tvet-student', labelKey: 'persona.tvet-student', descKey: 'persona.tvet-student.d' },
+export const PERSONAS: Array<{
+  id: Persona;
+  labelKey: string;
+  descKey: string;
+}> = [
+  {
+    id: 'working-adult',
+    labelKey: 'persona.working-adult',
+    descKey: 'persona.working-adult.d',
+  },
+  {
+    id: 'fresh-grad',
+    labelKey: 'persona.fresh-grad',
+    descKey: 'persona.fresh-grad.d',
+  },
+  {
+    id: 'switcher',
+    labelKey: 'persona.switcher',
+    descKey: 'persona.switcher.d',
+  },
+  {
+    id: 'tvet-student',
+    labelKey: 'persona.tvet-student',
+    descKey: 'persona.tvet-student.d',
+  },
 ];
 
 export const INTERESTS = [
-  'technology', 'ai', 'business', 'people', 'education',
-  'service', 'health', 'green', 'sustainability', 'creative',
+  'technology',
+  'ai',
+  'business',
+  'people',
+  'education',
+  'service',
+  'health',
+  'green',
+  'sustainability',
+  'creative',
 ] as const;
