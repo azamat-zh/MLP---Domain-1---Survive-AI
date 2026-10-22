@@ -82,10 +82,8 @@ bun run build
 bun run start
 ```
 
-Deployment packaging (Linux sandbox):
+Deployment packaging for the Linux sandbox is produced by local build tooling outside the repository. Runtime wiring:
 
-- `.zscripts/build.sh` assembles `next-service-dist/` (standalone server, static assets, database, optional Python runtime) and tars it.
-- `.zscripts/start.sh` boots the packaged app: standalone server + mini-services, then `exec caddy run --config Caddyfile`.
 - `Caddyfile` proxies port 81 to `localhost:3000`; the `?XTransformPort=N` query parameter forwards to `localhost:N`.
 - `mini-services/` is reserved for standalone micro-apps (currently empty); each subdirectory is its own Bun project with its own `package.json`.
 
@@ -103,7 +101,6 @@ src/
   hooks/               # use-mobile, use-toast
 prisma/schema.prisma   # SQLite models: SignalRun, SignalSnapshot, ChangelogEntry
 db/custom.db           # local SQLite database (runtime state)
-.zscripts/             # lifecycle scripts: dev.sh, start.sh, build.sh
 tests/                 # build-tooling shell tests
 scripts/               # golden-path verification screenshots (verify-*.png)
 docs/                  # documentation

@@ -88,12 +88,6 @@ The following published formulas are invariants. Changing them changes product g
 3. `bun run db:push --accept-data-loss` to apply the schema to your local database (resets data).
 4. Files changed: `prisma/schema.prisma`, optionally `src/lib/db.ts`.
 
-## Deployment Build Pipeline
+## Deployment
 
-The `.zscripts/` scripts serve the sandbox deployment:
-
-- `.zscripts/build.sh` - standalone build + optional Python runtime + database packaging.
-- `.zscripts/start.sh` - production boot with Caddy reverse proxy.
-- `.zscripts/mini-services-*.sh` - examples for the (currently empty) `mini-services/` directory.
-
-These scripts are Linux-oriented and hardcode paths; for local development use the scripts in `package.json`.
+The app builds as a Next.js standalone output (`bun run build` then `bun run start`). Deployment packaging for the Linux sandbox is handled by local tooling outside the repository; `Caddyfile` (port 81 -> 3000) and `mini-services/` (standalone micro-apps) are the in-repo runtime pieces.

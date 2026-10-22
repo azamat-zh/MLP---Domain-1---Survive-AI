@@ -42,7 +42,6 @@ Data flow details:
 | `src/hooks/` | `use-mobile.ts`, `use-toast.ts` |
 | `prisma/` | `schema.prisma` — SQLite `SignalRun` / `SignalSnapshot` / `ChangelogEntry` models |
 | `db/` | Local SQLite file `custom.db` (runtime DB) |
-| `.zscripts/` | Lifecycle scripts: `dev.sh`, `start.sh` (prod), `build.sh` (deployment packaging) |
 | `mini-services/` | Reserved for standalone micro-apps (currently empty; each subdir = own package.json) |
 | `tests/` | Shell scripts exercising the build-tooling pipeline (not app logic) |
 | `scripts/` | Golden-path verification screenshots `verify-01…10-*.png` |
@@ -64,11 +63,8 @@ bun run db:migrate   # prisma migrate dev
 bun run db:reset     # prisma migrate reset
 ```
 
-Deployment-family scripts (all `bash`, run manually; assume Linux):
-- `.zscripts/dev.sh` — `bun install` → `db:push` → `next dev` → port-3000 health check → starts any `mini-services/*`.
-- `.zscripts/build.sh` — full deployment packaging into `next-service-dist/` (hardcodes `/home/z/my-project`; auto-injects `output:"standalone"` if missing); not needed for local dev.
-- `.zscripts/start.sh` — production boot: `bun server.js` + mini-services, then `exec caddy run --config Caddyfile`.
-- `tests/database-runtime-build.sh`, `tests/python-runtime-build.sh` — `bash tests/<name>.sh`; `tests/python-runtime-container.sh` additionally needs Docker.
+Shell tests (run manually with `bash`):
+- `tests/database-runtime-build.sh`, `tests/python-runtime-build.sh` — exercise deployment build tooling; `tests/python-runtime-container.sh` additionally needs Docker.
 
 ## Code Conventions & Common Patterns
 
