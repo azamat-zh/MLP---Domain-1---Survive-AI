@@ -154,7 +154,12 @@ function IndividualOnboarding() {
     switch (step) {
       case 1: return profile.persona !== null;
       case 2: return profile.interests.length > 0 && profile.budget >= 1;
-      case 3: return profile.intakeMode !== null;
+      case 3:
+        // CV intake only advances once extraction actually filled the profile
+        // (intakeMode is set before the async LLM call completes); the guided
+        // checklist path advances immediately — no extraction involved.
+        return profile.intakeMode === 'form' ||
+          (profile.intakeMode === 'cv' && Object.keys(profile.skills).length > 0);
       case 4: return Object.keys(profile.skills).length > 0;
       default: return true;
     }

@@ -1,12 +1,12 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Eye, FileWarning, ScanSearch, ShieldCheck, Sparkles } from 'lucide-react';
+import { Eye, FileWarning, Loader2, ScanSearch, ShieldCheck, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { SAMPLE_CV } from '@/data/sample-cv';
-import { scrubCV, skillsFromCV, extractSkills, type ScrubReport } from '@/lib/cv';
+import { scrubCV, skillsFromCV, extractSkills, type ExtractedSkill, type ScrubReport } from '@/lib/cv';
 import { SKILL_MAP } from '@/data/skills';
 import { useSkillCast } from '@/lib/store';
 import { LevelDots, useT } from './shared';
@@ -24,6 +24,7 @@ export function CvStep({ onDone }: { onDone: () => void }) {
   const [report, setReport] = useState<ScrubReport | null>(null);
   const [extracting, setExtracting] = useState(false);
   const [extractMode, setExtractMode] = useState<'llm' | 'deterministic' | null>(null);
+  const [extractedSkills, setExtractedSkills] = useState<ExtractedSkill[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (file: File) => {
@@ -37,6 +38,7 @@ export function CvStep({ onDone }: { onDone: () => void }) {
     setReport(scrubbed);
     setExtracting(true);
     setExtractMode(null);
+    setExtractedSkills([]);
     const scrubMeta = {
       intakeMode: 'cv' as const,
       cvScrub: { items: scrubbed.items.length, kinds: [...new Set(scrubbed.items.map((i) => i.kind))] },
@@ -54,6 +56,9 @@ export function CvStep({ onDone }: { onDone: () => void }) {
           years: data.years && data.years > 0 ? data.years : profile.years,
           ...scrubMeta,
         });
+        setExtractedSkills(
+          Object.entries(data.skills).map(([slug, level]) => ({ slug, level, strongContext: false }))
+        );
         setExtractMode('llm');
         return;
       }
@@ -64,6 +69,7 @@ export function CvStep({ onDone }: { onDone: () => void }) {
     }
     const skills = skillsFromCV(scrubbed.scrubbedText);
     setProfile({ skills, ...scrubMeta });
+    setExtractedSkills(extractSkills(scrubbed.scrubbedText).slice(0, 10));
     setExtractMode('deterministic');
   };
 
@@ -72,7 +78,10 @@ export function CvStep({ onDone }: { onDone: () => void }) {
     onDone();
   };
 
-  const extracted = report ? extractSkills(report.scrubbedText).slice(0, 10) : [];
+  // Next is only enabled once extraction finished and produced skills — the
+  // user never lands on the confirm screen with empty skills. The guided
+  // checklist path (useForm) bypasses extraction entirely.
+  const skillsReady = !extracting && extractedSkills.length > 0;
 
   if (profile.intakeMode === 'form') {
     return (
@@ -170,6 +179,14 @@ export function CvStep({ onDone }: { onDone: () => void }) {
             </pre>
           </details>
 
+          {/* Extraction in progress — skills are not filled yet */}
+          {extracting && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              {t('onb.cv.extracting')}
+            </div>
+          )}
+
           {/* Extraction source disclosure */}
           {extractMode && (
             <p className="text-xs text-muted-foreground">
@@ -178,10 +195,10 @@ export function CvStep({ onDone }: { onDone: () => void }) {
           )}
 
           {/* Extracted skills preview */}
-          {extracted.length > 0 && (
+          {extractedSkills.length > 0 && (
             <div>
               <ul className="grid gap-1.5 sm:grid-cols-2">
-                {extracted.map((s) => (
+                {extractedSkills.map((s) => (
                   <li
                     key={s.slug}
                     className="flex items-center justify-between gap-2 rounded-lg border px-3 py-1.5 text-sm"
@@ -199,7 +216,11 @@ export function CvStep({ onDone }: { onDone: () => void }) {
             </div>
           )}
 
-          <Button onClick={onDone} className="w-full gap-2">
+          {!extracting && report && extractedSkills.length === 0 && (
+            <p className="text-sm text-muted-foreground">{t('onb.skills.none')}</p>
+          )}
+
+          <Button onClick={onDone} disabled={!skillsReady} className="w-full gap-2">
             {t('common.next')}
           </Button>
         </div>
