@@ -20,6 +20,10 @@ interface CoachRequest {
   gap: Array<{ skill: string; userLevel: number; minLevel: number; momentum: number }>;
   scenario: 'moderate' | 'accelerated';
   lang: 'en' | 'ms' | 'zh' | 'ru';
+  mode?: 'match' | 'harada';
+  pathwayWeeks?: number;
+  budget?: number;
+  courses?: string[];
 }
 
 const LANG_INSTRUCTION: Record<string, string> = {
@@ -32,6 +36,18 @@ const LANG_INSTRUCTION: Record<string, string> = {
 function fallbackNarration(req: CoachRequest): string {
   const role = ROLE_MAP[req.roleSlug];
   const topGap = req.gap[0];
+  if (req.mode === 'harada') {
+    const g = topGap
+      ? ` Priority gap: ${SKILL_MAP[topGap.skill]?.name ?? topGap.skill} (level ${topGap.userLevel} of ${topGap.minLevel} needed).`
+      : '';
+    return (
+      `Plan: ${role?.title}. Why: ${role?.tagline}.` +
+      g +
+      ` Timeline: ~${req.pathwayWeeks ?? 0} weeks at ${req.budget ?? 0} hrs/week.` +
+      ` Courses: ${(req.courses ?? []).join(', ') || 'none yet — pick them from the pathway tab.'}` +
+      ` SDG: ${(role?.sdgTags ?? []).join(', ')}.`
+    );
+  }
   const strongest = [...req.factors].sort((a, b) => b.value - a.value)[0];
   const g = topGap
     ? ` The priority gap is ${SKILL_MAP[topGap.skill]?.name ?? topGap.skill} (level ${topGap.userLevel} of ${topGap.minLevel} needed).`
@@ -55,28 +71,43 @@ export async function POST(request: Request) {
   if (!role) return NextResponse.json({ error: 'unknown role' }, { status: 400 });
 
   try {
-    const facts = {
-      role: role.title,
-      tagline: role.tagline,
-      matchScore: req.score,
-      factors: req.factors.map((f) => `${f.label}: ${Math.round(f.value * 100)}%`),
-      skillsGap: req.gap
-        .slice(0, 5)
-        .map((g) => `${SKILL_MAP[g.skill]?.name ?? g.skill}: level ${g.userLevel}, needs ${g.minLevel}, momentum ${g.momentum}/100`),
-      demandOutlook: {
-        moderate: role.demandModerate,
-        accelerated: role.demandAccelerated,
-        scenarioShown: req.scenario,
-      },
-      sdgGoals: role.sdgTags,
-    };
+    const isHarada = req.mode === 'harada';
+    const facts = isHarada
+      ? {
+          goal: role.title,
+          why: role.tagline,
+          sdgGoals: role.sdgTags,
+          deadlineWeeks: req.pathwayWeeks ?? 0,
+          budgetHrs: req.budget ?? 0,
+          priorityGaps: req.gap
+            .slice(0, 5)
+            .map((g) => `${SKILL_MAP[g.skill]?.name ?? g.skill}: level ${g.userLevel}, needs ${g.minLevel}, momentum ${g.momentum}/100`),
+          coursePlan: req.courses ?? [],
+        }
+      : {
+          role: role.title,
+          tagline: role.tagline,
+          matchScore: req.score,
+          factors: req.factors.map((f) => `${f.label}: ${Math.round(f.value * 100)}%`),
+          skillsGap: req.gap
+            .slice(0, 5)
+            .map((g) => `${SKILL_MAP[g.skill]?.name ?? g.skill}: level ${g.userLevel}, needs ${g.minLevel}, momentum ${g.momentum}/100`),
+          demandOutlook: {
+            moderate: role.demandModerate,
+            accelerated: role.demandAccelerated,
+            scenarioShown: req.scenario,
+          },
+          sdgGoals: role.sdgTags,
+        };
 
     const narration = await runpodChat({
       messages: [
         {
           role: 'system',
           content:
-            'You are the narration layer of a career-forecasting tool. You receive deterministic match output and must explain it to the user in 3-4 warm, concrete sentences. STRICT RULES: use ONLY the facts provided; never invent jobs, courses, statistics, salaries or sources; never give a different score; mention that predictions are estimates and the user makes the final decision. ' +
+            (isHarada
+              ? 'You are the plan coach of a career tool. Explain the user\'s Harada-style self-management plan in 3-4 warm, concrete sentences: the goal role, why it matters (SDG link), the deadline, the priority gaps, and the course plan. STRICT RULES: use ONLY the facts provided; never invent jobs, courses, durations, statistics, salaries or sources; mention that predictions are estimates and the user makes the final decision. '
+              : 'You are the narration layer of a career-forecasting tool. You receive deterministic match output and must explain it to the user in 3-4 warm, concrete sentences. STRICT RULES: use ONLY the facts provided; never invent jobs, courses, statistics, salaries or sources; never give a different score; mention that predictions are estimates and the user makes the final decision. ') +
             (LANG_INSTRUCTION[req.lang] ?? 'Reply in English.'),
         },
         {

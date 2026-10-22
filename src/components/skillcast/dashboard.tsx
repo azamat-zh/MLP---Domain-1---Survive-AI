@@ -121,9 +121,15 @@ export function Dashboard() {
 
 function OverviewTab({ matches }: { matches: ReturnType<typeof matchAll> }) {
   const t = useT();
-  const { profile, chosenRole } = useSkillCast();
+  const { profile, chosenRole, setView } = useSkillCast();
   const { data, loading, refreshing, refresh, momentumMap } = useSignals();
   const [emailOpen, setEmailOpen] = useState(false);
+  const [justRefreshed, setJustRefreshed] = useState(false);
+  const handleRefresh = async () => {
+    await refresh();
+    setJustRefreshed(true);
+    window.setTimeout(() => setJustRefreshed(false), 8000);
+  };
 
   const radarData = useMemo(() => {
     const userSlugs = Object.keys(profile.skills);
@@ -163,6 +169,27 @@ function OverviewTab({ matches }: { matches: ReturnType<typeof matchAll> }) {
 
   return (
     <div className="space-y-4">
+      {/* Refresh-completed notice */}
+      {justRefreshed && data && (
+        <div className="rounded-lg border border-teal-300 bg-teal-50 px-4 py-3 text-sm dark:border-teal-800 dark:bg-teal-950/40">
+          <div className="flex flex-wrap items-center gap-2">
+            <RadioTower className="h-4 w-4 shrink-0 text-teal-600 dark:text-teal-400" aria-hidden />
+            <span>
+              {movers.length > 0
+                ? t('ov.refreshed', { n: data.totalPostings, m: data.sources.length, k: movers.length })
+                : t('ov.refreshed.none', { n: data.totalPostings, m: data.sources.length })}
+            </span>
+            <button
+              type="button"
+              onClick={() => setView('signals')}
+              className="ml-auto text-xs font-medium text-teal-700 underline-offset-2 hover:underline dark:text-teal-300"
+            >
+              {t('ov.seechanges')}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Forecast status */}
       <Card>
         <CardContent className="flex flex-wrap items-center gap-3 pt-6">
@@ -181,7 +208,7 @@ function OverviewTab({ matches }: { matches: ReturnType<typeof matchAll> }) {
             {data ? new Date(data.fetchedAt).toLocaleString() : ''}
           </span>
           <div className="ml-auto flex flex-wrap gap-2">
-            <Button onClick={() => void refresh()} disabled={refreshing} variant="outline" className="gap-2">
+            <Button onClick={() => void handleRefresh()} disabled={refreshing} variant="outline" className="gap-2">
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden />
               {refreshing ? t('ov.refreshing') : t('ov.refresh')}
             </Button>
