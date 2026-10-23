@@ -46,12 +46,12 @@ export function SignalsView() {
         <div className="mt-4 rounded-lg border border-red-500 bg-red-50/30 p-4">
           <p className="flex items-center gap-2 text-sm font-semibold text-red-700 dark:text-red-400">
             <FileWarning className="h-5 w-5" aria-hidden />
-            Could not load signals
+            {t('hr.signals.error')}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">{error}</p>
           <Button variant="outline" size="sm" onClick={() => void refresh()} className="mt-2 gap-2">
             <RefreshCw className="h-4 w-4" aria-hidden />
-            Retry
+            {t('hr.signals.retry')}
           </Button>
         </div>
       )}

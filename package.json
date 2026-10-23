@@ -7,6 +7,7 @@
     "build": "next build && node -e \"require('node:fs').cpSync('.next/static','.next/standalone/.next/static',{recursive:true}); require('node:fs').cpSync('public','.next/standalone/public',{recursive:true})\"",
     "start": "NODE_ENV=production HOSTNAME=0.0.0.0 bun .next/standalone/server.js",
     "lint": "eslint .",
+    "test:hr": "bun test tests/hr-regression.test.tsx tests/hr-i18n.test.ts tests/hr-signals.test.tsx",
     "setup:runpod": "bun scripts/setup-runpod.mjs",
     "db:push": "prisma db push --accept-data-loss",
     "db:generate": "prisma generate",

@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, Briefcase, Building2, CalendarClock, Check, ClipboardList,
-  ClipboardCheck, FileArchive, FileWarning, Gauge, Globe, GraduationCap, LayoutTemplate, MapPin,
+  ClipboardCheck, FileArchive, Gauge, Globe, GraduationCap, LayoutTemplate, MapPin,
   Link as LinkIcon, ListChecks, Laptop, Rocket, ScanSearch, ShieldCheck, Sparkles, Target, Upload,
   User, Wallet, Clock3, Home, VolumeX, FileText, Accessibility, MessageSquareText, Radar, Search, Plus, X, SlidersHorizontal,
 } from 'lucide-react';
@@ -22,9 +22,8 @@ import {
 } from '@/components/ui/select';
 import { ADJACENCY_MAP, SKILLS, SKILL_MAP } from '@/data/skills';
 import { ROLES, ROLE_MAP } from '@/data/roles';
-import { BATCH_CVS, DEPT_TEMPLATES, INDUSTRIES } from '@/data/team';
+import { DEPT_TEMPLATES, INDUSTRIES } from '@/data/team';
 import { FIELDS_OF_STUDY } from '@/data/institution';
-import { scrubCV } from '@/lib/cv';
 import { INTERESTS, PERSONAS, useSkillCast } from '@/lib/store';
 import { matchAll } from '@/lib/matching';
 import type { CareerStrategy, EmployerObjective, EmploymentStatus, IndividualProfileDetails } from '@/lib/types';
@@ -44,19 +43,20 @@ export function Onboarding() {
 // ─── Step 1: choose the onboarding path ────────────────────────────────────
 
 function StepUserType() {
+  const t = useT();
   const { setUserType, setView } = useSkillCast();
   const paths = [
-    { id: 'individual' as const, icon: User, title: 'Individual', desc: 'Build a personal career forecast, explore future roles, and plan your next learning steps.' },
-    { id: 'employer' as const, icon: Building2, title: 'Employer', desc: 'Explore your team profile, workforce skill gaps, and reskilling options.' },
+    { id: 'individual' as const, icon: User, title: t('hr.onboarding.path.individual'), desc: t('hr.onboarding.path.individual.description') },
+    { id: 'employer' as const, icon: Building2, title: t('hr.onboarding.path.employer'), desc: t('hr.onboarding.path.employer.description') },
   ];
   return (
     <div className="skillcast-onboarding px-4 py-8 sm:py-12">
       <div className="mx-auto max-w-3xl">
         <Card className="border-blue-100 dark:border-slate-700 bg-white shadow-[0_16px_60px_rgba(39,70,130,.08)]">
           <CardHeader>
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-600">Step 1 · Choose your path</p>
-            <CardTitle className="text-2xl text-slate-950">How would you like to use SkillCast?</CardTitle>
-            <CardDescription>Choose a path to get started. Institution services remain available through the existing application flow.</CardDescription>
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-600">{t('hr.onboarding.path.step')}</p>
+            <CardTitle className="text-2xl text-slate-950">{t('hr.onboarding.path.title')}</CardTitle>
+            <CardDescription>{t('hr.onboarding.path.description')}</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             {paths.map((path) => (
@@ -77,7 +77,7 @@ function StepUserType() {
           </CardContent>
           <div className="px-6 pb-5">
             <Button variant="ghost" onClick={() => setView('landing')} className="text-slate-600 hover:bg-blue-50 hover:text-blue-800">
-              <ArrowLeft className="mr-1 h-4 w-4" aria-hidden /> Back to landing page
+              <ArrowLeft className="mr-1 h-4 w-4" aria-hidden /> {t('hr.onboarding.back')}
             </Button>
           </div>
         </Card>
@@ -105,11 +105,11 @@ function StepProgress({ step, total }: { step: number; total: number }) {
 // ─── Shared onboarding shell (progress + nav) ──────────────────────────────
 
 function OnboardingShell({
-  step, total, title, desc, icon: Icon, onBack, onNext, nextDisabled, children, finish, privacyNote, light = false, onSkip,
+  step, total, title, desc, icon: Icon, onBack, onNext, nextDisabled, children, finish, privacyNote, light = false, onSkip, nextLabel = 'Continue',
 }: {
   step: number; total: number; title: string; desc?: string; icon: typeof User;
   onBack: () => void; onNext: () => void; nextDisabled: boolean; children: React.ReactNode;
-  finish?: () => void; privacyNote?: boolean; light?: boolean; onSkip?: () => void;
+  finish?: () => void; privacyNote?: boolean; light?: boolean; onSkip?: () => void; nextLabel?: string;
 }) {
   const t = useT();
   const individualStepTitles = [
@@ -149,7 +149,7 @@ function OnboardingShell({
             <span className="text-sm font-medium text-muted-foreground">
               {t('onb.step')} {step} {t('onb.of')} {total}
             </span>
-            <Progress value={(step / total) * 100} className="h-1.5 flex-1" aria-label={`Step ${step} of ${total}`} />
+            <Progress value={(step / total) * 100} className="h-1.5 flex-1" aria-label={`${t('onb.step')} ${step} ${t('onb.of')} ${total}`} />
           </div>
         )}
 
@@ -178,7 +178,7 @@ function OnboardingShell({
               disabled={nextDisabled}
               className={`gap-1 ${light ? 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300 dark:disabled:bg-blue-900' : 'bg-teal-700 text-white hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500'}`}
             >
-              Continue <ArrowRight className="h-4 w-4" aria-hidden />
+              {nextLabel} <ArrowRight className="h-4 w-4" aria-hidden />
             </Button>
           ) : (
             <Button onClick={finish} className={`gap-2 ${light ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-teal-700 text-white hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500'}`}>
@@ -872,7 +872,8 @@ function EmployerOnboarding() {
       onNext={() => setStep((s) => Math.min(4, s + 1))}
       nextDisabled={!canNext}
       finish={finish}
-      privacyNote={step === 2 && employer.intake === 'batch'}
+      privacyNote={false}
+      nextLabel={t('common.next')}
     >
       {step === 1 && <EmployerStepOrg />}
       {step === 2 && <EmployerStepIntake />}
@@ -900,7 +901,7 @@ function EmployerStepOrg() {
       </div>
       <div>
         <Label>{t('onb.emp.industry')}</Label>
-        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup" aria-label={t('onb.emp.industry')}>
+        <div className="mt-2 grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4" role="radiogroup" aria-label={t('onb.emp.industry')}>
           {INDUSTRIES.map((ind) => (
             <button
               key={ind.id}
@@ -908,7 +909,7 @@ function EmployerStepOrg() {
               role="radio"
               aria-checked={employer.industry === ind.id}
               onClick={() => setEmployer({ industry: ind.id })}
-              className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
+              className={`min-w-0 whitespace-normal break-words rounded-lg border px-3 py-2 text-sm transition-colors ${
                 employer.industry === ind.id
                   ? 'border-blue-600 bg-blue-50 font-medium ring-1 ring-blue-200 dark:ring-blue-800'
                   : 'border-border hover:border-blue-400'
@@ -944,15 +945,15 @@ function IntakeOption({
 }) {
   return (
     <div
-      className={`rounded-xl border p-4 transition-colors ${
+      className={`min-w-0 break-words rounded-xl border p-4 transition-colors ${
         selected
           ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200 dark:ring-blue-800'
           : 'border-border'
       }`}
     >
-      <button type="button" onClick={onSelect} className="flex w-full items-start gap-3 text-left">
+      <button type="button" onClick={onSelect} className="flex w-full min-w-0 items-start gap-3 whitespace-normal text-left">
         <Icon className="mt-0.5 h-5 w-5 shrink-0 text-teal-600 dark:text-teal-400" aria-hidden />
-        <span className="flex-1">
+        <span className="min-w-0 flex-1">
           <span className="flex items-center gap-2 font-medium">
             {title}
             {selected && <Check className="h-4 w-4 text-blue-600" aria-hidden />}
@@ -971,18 +972,6 @@ function EmployerStepIntake() {
   const { employer, setEmployer } = useSkillCast();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Batch demo: run the same in-browser scrubber over the synthetic batch
-  const scrubStats = useMemo(() => {
-    let items = 0;
-    const kinds = new Set<string>();
-    for (const cv of BATCH_CVS) {
-      const r = scrubCV(cv);
-      items += r.items.length;
-      r.items.forEach((i) => kinds.add(i.kind));
-    }
-    return { cvs: BATCH_CVS.length, items, kinds: [...kinds] };
-  }, []);
-
   const sortedTemplates = useMemo(() => {
     return [...DEPT_TEMPLATES].sort((a, b) => {
       const aMatch = a.industry === employer.industry ? 0 : 1;
@@ -1000,32 +989,20 @@ function EmployerStepIntake() {
         desc={t('onb.emp.intake.batch.d')}
         onSelect={() => setEmployer({ intake: 'batch' })}
       >
-        <div className="mt-3 space-y-2 pl-8">
+        <div className="mt-3 min-w-0 space-y-2 sm:pl-8">
           <input
             ref={fileRef}
             type="file"
             accept=".zip,.csv,.txt"
             className="hidden"
           />
-          <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} className="gap-2">
-            <ScanSearch className="h-4 w-4" aria-hidden /> {t('onb.emp.intake.batch.btn')}
+          <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} className="h-auto min-h-9 max-w-full gap-2 whitespace-normal text-left">
+            <ScanSearch className="h-4 w-4 shrink-0" aria-hidden /> {t('onb.emp.intake.batch.btn')}
           </Button>
-          <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm dark:border-emerald-900 dark:bg-emerald-950/40">
-              <p className="flex items-center gap-1.5 font-medium text-emerald-800 dark:text-emerald-300">
-                <ShieldCheck className="h-4 w-4" aria-hidden />
-                {t('onb.emp.intake.batch.report', { cvs: scrubStats.cvs, items: scrubStats.items })}
-              </p>
-              {scrubStats.kinds.length > 0 && (
-                <div className="mt-1.5 flex flex-wrap gap-1">
-                  {scrubStats.kinds.map((k) => (
-                    <Badge key={k} variant="outline" className="gap-1 border-emerald-400 bg-white/60 text-[11px] text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200">
-                      <FileWarning className="h-3 w-3" aria-hidden /> {k}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-              <p className="mt-1.5 text-xs text-emerald-800/80 dark:text-emerald-300/80">{t('scrub.keep')}</p>
-          </div>
+          <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+            {t('onb.emp.intake.batch.notice')}
+          </p>
+          <p className="text-xs text-muted-foreground">{t('onb.emp.intake.batch.roster')}</p>
         </div>
       </IntakeOption>
 
@@ -1036,7 +1013,7 @@ function EmployerStepIntake() {
         desc={t('onb.emp.intake.matrix.d')}
         onSelect={() => setEmployer({ intake: 'matrix' })}
       >
-        <div className="mt-3 pl-8">
+        <div className="mt-3 min-w-0 sm:pl-8">
           <Input
             value={employer.matrixUrl}
             onChange={(e) => setEmployer({ matrixUrl: e.target.value })}
@@ -1054,7 +1031,7 @@ function EmployerStepIntake() {
         desc={t('onb.emp.intake.template.d')}
         onSelect={() => setEmployer({ intake: 'template' })}
       >
-        <div className="mt-3 grid gap-2 pl-8 sm:grid-cols-2" role="radiogroup" aria-label={t('onb.emp.intake.template')}>
+        <div className="mt-3 grid min-w-0 gap-2 sm:grid-cols-2 sm:pl-8" role="radiogroup" aria-label={t('onb.emp.intake.template')}>
           {sortedTemplates.map((tpl) => (
             <button
               key={tpl.id}
@@ -1062,15 +1039,15 @@ function EmployerStepIntake() {
               role="radio"
               aria-checked={employer.template === tpl.id}
               onClick={() => setEmployer({ template: tpl.id })}
-              className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition-colors ${
+              className={`flex min-w-0 flex-wrap items-center justify-between gap-2 whitespace-normal rounded-lg border px-3 py-2 text-sm transition-colors ${
                 employer.template === tpl.id
                   ? 'border-blue-600 bg-blue-50 font-medium'
                   : 'border-border hover:border-blue-400'
               }`}
             >
-              <span>{t(tpl.labelKey)}</span>
-              <span className="flex items-center gap-1.5">
-                {tpl.industry === employer.industry && <Badge variant="outline" className="text-[10px]">{t('onb.emp.match')}</Badge>}
+              <span className="min-w-0">{t(tpl.labelKey)}</span>
+              <span className="flex max-w-full flex-wrap items-center gap-1.5">
+                {tpl.industry === employer.industry && <Badge variant="outline" className="max-w-full whitespace-normal text-[10px]">{t('onb.emp.match')}</Badge>}
                 {tpl.totalStaff > tpl.shownMembers.length && (
                   <span className="text-[10px] text-muted-foreground">{tpl.shownMembers.length}/{tpl.totalStaff}</span>
                 )}

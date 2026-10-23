@@ -22,6 +22,8 @@ export interface Posting {
   description: string;
   source: string;
   date: Date;
+  sourceDate?: string;
+  sourceDateKind?: 'published' | 'updated';
   url?: string;
 }
 
@@ -68,6 +70,8 @@ export async function fetchRemotive(): Promise<Posting[]> {
     description: stripHtml(j.description ?? ''),
     source: 'Remotive',
     date: j.publication_date ? new Date(j.publication_date) : new Date(),
+    sourceDate: j.publication_date,
+    sourceDateKind: j.publication_date ? 'published' as const : undefined,
     url: j.url,
   }));
 }
@@ -96,6 +100,8 @@ export async function fetchArbeitnow(): Promise<Posting[]> {
       description: stripHtml(j.description ?? ''),
       source: 'Arbeitnow',
       date: j.created_at ? new Date(j.created_at * 1000) : new Date(),
+      sourceDate: j.created_at ? new Date(j.created_at * 1000).toISOString() : undefined,
+      sourceDateKind: j.created_at ? 'published' as const : undefined,
       url: j.url,
     }));
     if (list.length === 0) break;
@@ -126,6 +132,8 @@ export async function fetchGreenhouse(): Promise<{ postings: Posting[]; boardRes
           description: `[${board}] ${stripHtml(j.content ?? '')}`,
           source: 'Greenhouse',
           date: d ? new Date(d) : new Date(),
+          sourceDate: d,
+          sourceDateKind: d ? 'updated' : undefined,
           url: j.absolute_url,
         });
       }
@@ -169,6 +177,8 @@ export async function fetchAshby(): Promise<{ postings: Posting[]; boardResults:
           description: `[${org}] ${stripHtml(j.descriptionHtml ?? j.descriptionPlain ?? '')}`,
           source: 'Ashby',
           date: d ? new Date(d) : new Date(),
+          sourceDate: d,
+          sourceDateKind: j.updatedAt ? 'updated' : j.createdAt ? 'published' : undefined,
           url: j.jobUrl ?? j.url,
         });
       }
@@ -297,6 +307,8 @@ export function computeMomentum(postings: Posting[]): SkillSnapshot[] {
           company: p.company,
           url: p.url,
           date: p.date.toISOString(),
+          sourceDate: p.sourceDate,
+          sourceDateKind: p.sourceDateKind,
           snippet: snippet.slice(0, 160),
         });
       }
