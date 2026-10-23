@@ -483,13 +483,13 @@ export function FutureRadarStep({ details, onScenario }: { details: IndividualPr
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-4 rounded-2xl border border-blue-100 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+      <header className="flex flex-col gap-4 rounded-2xl border border-blue-100 dark:border-slate-700 bg-gradient-to-r from-blue-50 dark:from-slate-800 to-indigo-50 dark:to-slate-900 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-semibold text-slate-900">Your Future Skills Radar</h3>
-            <Badge className="border border-blue-200 bg-white text-blue-700">Illustrative demo</Badge>
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100">Your Future Skills Radar</h3>
+            <Badge className="border border-blue-200 bg-white dark:bg-slate-900 text-blue-700 dark:text-slate-200">Illustrative demo</Badge>
           </div>
-          <p className="mt-1 max-w-2xl text-sm text-slate-600">Personalized from your profile, interests, skills, SkillCast pathways, and current signals.</p>
+          <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-300">Personalized from your profile, interests, skills, SkillCast pathways, and current signals.</p>
         </div>
         <div className="flex w-full rounded-xl border border-blue-100 dark:border-slate-700 bg-white p-1 sm:w-auto" role="group" aria-label="AI adoption scenario">
           {(['moderate', 'accelerated'] as const).map((option) => (
