@@ -79,7 +79,7 @@ export function Dashboard() {
               aria-checked={scenario === 'accelerated'}
               onClick={() => setScenario('accelerated')}
               className={`rounded-md px-3 py-1 text-sm transition-colors ${
-                scenario === 'accelerated' ? 'bg-amber-600 text-white font-medium' : 'text-muted-foreground hover:text-foreground'
+                scenario === 'accelerated' ? 'bg-amber-600 dark:bg-amber-500 text-white font-medium' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {t('scenario.accelerated')}
@@ -180,7 +180,7 @@ function OverviewTab({ matches }: { matches: ReturnType<typeof matchAll> }) {
 
   return (
     <div className="space-y-4">
-      <Card className="border-blue-100 dark:border-slate-700 bg-gradient-to-r from-white dark:from-slate-900 via-blue-50/70 to-indigo-50/70 shadow-sm">
+      <Card className="border-blue-100 dark:border-slate-700 bg-gradient-to-r from-white dark:from-slate-900 via-blue-50/70 dark:via-slate-800 to-indigo-50/70 dark:to-slate-900 shadow-sm">
         <CardContent className="grid gap-5 pt-6 md:grid-cols-[1fr_auto] md:items-center">
           <div>
             <div className="flex flex-wrap items-center gap-2"><Badge variant="outline" className="border-blue-200 bg-white text-blue-700">Your career snapshot</Badge>{profileDetails?.employmentStatus && <Badge variant="secondary">{profileDetails.employmentStatus.replace('-', ' ')}</Badge>}</div>
@@ -190,7 +190,7 @@ function OverviewTab({ matches }: { matches: ReturnType<typeof matchAll> }) {
             {leadingRole && <p className="mt-1 text-sm text-slate-600">AI task exposure: {leadingExposure} · this describes task change, not a job replacement probability.</p>}
             <p className="mt-1 text-sm text-slate-600">Learning: {completedCourses.length} completed course{completedCourses.length === 1 ? '' : 's'} · Next: {nextCourse?.title ?? 'review your pathway'}</p>
           </div>
-          <div className="flex flex-wrap gap-2"><Button variant="outline" className="border-blue-200 text-blue-700" onClick={() => setDashTab('radar')}>Explore your radar</Button><Button variant="outline" className="border-blue-200 text-blue-700" onClick={() => setDashTab('pathway')}>Open pathway</Button><Button variant="outline" className="border-blue-200 text-blue-700" onClick={() => setDashTab('progress')}>View next steps</Button></div>
+          <div className="flex flex-wrap gap-2"><Button variant="outline" className="border-blue-200 dark:border-slate-600 text-blue-700 dark:text-slate-200" onClick={() => setDashTab('radar')}>Explore your radar</Button><Button variant="outline" className="border-blue-200 dark:border-slate-600 text-blue-700 dark:text-slate-200" onClick={() => setDashTab('pathway')}>Open pathway</Button><Button variant="outline" className="border-blue-200 dark:border-slate-600 text-blue-700 dark:text-slate-200" onClick={() => setDashTab('progress')}>View next steps</Button></div>
         </CardContent>
       </Card>
 
@@ -200,8 +200,8 @@ function OverviewTab({ matches }: { matches: ReturnType<typeof matchAll> }) {
           <Badge
             className={
               data?.live
-                ? 'gap-1.5 bg-emerald-600 text-white'
-                : 'gap-1.5 bg-amber-600 text-white'
+                ? 'gap-1.5 bg-emerald-600 dark:bg-emerald-500 text-white'
+                : 'gap-1.5 bg-amber-600 dark:bg-amber-500 text-white'
             }
           >
             <RadioTower className="h-3 w-3" aria-hidden />

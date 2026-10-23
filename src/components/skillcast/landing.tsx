@@ -36,7 +36,7 @@ export function Landing() {
   return (
     <div className="skillcast-landing overflow-hidden">
       {/* Hero */}
-      <section className="skillcast-hero relative isolate flex min-h-[min(720px,calc(100svh-64px))] items-center justify-center overflow-hidden px-5 py-20 sm:px-10 lg:min-h-[700px]">
+      <section className="skillcast-hero relative isolate flex min-h-[100svh] items-center justify-center overflow-hidden px-5 py-20 sm:px-10">
         <div className="skillcast-hero-glow" aria-hidden="true" />
         <div className="skillcast-bubble skillcast-bubble--one" aria-hidden="true" />
         <div className="skillcast-bubble skillcast-bubble--two" aria-hidden="true" />

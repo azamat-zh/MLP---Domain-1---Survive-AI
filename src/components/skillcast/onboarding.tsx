@@ -52,8 +52,7 @@ function StepUserType() {
   return (
     <div className="skillcast-onboarding px-4 py-8 sm:py-12">
       <div className="mx-auto max-w-3xl">
-        <StepProgress step={1} total={6} />
-        <Card className="mt-5 border-blue-100 dark:border-slate-700 bg-white shadow-[0_16px_60px_rgba(39,70,130,.08)]">
+        <Card className="border-blue-100 dark:border-slate-700 bg-white shadow-[0_16px_60px_rgba(39,70,130,.08)]">
           <CardHeader>
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-600">Step 1 · Choose your path</p>
             <CardTitle className="text-2xl text-slate-950">How would you like to use SkillCast?</CardTitle>
@@ -358,20 +357,6 @@ function ProfileStep({
             <Select value={details.educationLevel || '__unset__'} onValueChange={(value) => patchDetails({ educationLevel: value === '__unset__' ? '' : value })}>
               <SelectTrigger id="education-level" className={LIGHT_SELECT}><SelectValue placeholder="Select highest level" /></SelectTrigger>
               <SelectContent><SelectItem value="__unset__">Select highest level</SelectItem>{EDUCATION_OPTIONS.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="country" className="text-slate-800">Country <span className="text-rose-600">*</span></Label>
-            <Select value={details.country || '__unset__'} onValueChange={(value) => patchDetails({ country: value === '__unset__' ? '' : value, city: '' })}>
-              <SelectTrigger id="country" className={LIGHT_SELECT}><SelectValue placeholder="Select country" /></SelectTrigger>
-              <SelectContent><SelectItem value="__unset__">Select country</SelectItem>{Object.keys(COUNTRY_CITIES).map((country) => <SelectItem key={country} value={country}>{country}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="city" className="text-slate-800">City <span className="text-rose-600">*</span></Label>
-            <Select value={details.city || '__unset__'} disabled={!details.country} onValueChange={(value) => patchDetails({ city: value === '__unset__' ? '' : value })}>
-              <SelectTrigger id="city" className={LIGHT_SELECT}><SelectValue placeholder={details.country ? 'Select city' : 'Choose a country first'} /></SelectTrigger>
-              <SelectContent><SelectItem value="__unset__">{details.country ? 'Select city' : 'Choose a country first'}</SelectItem>{(COUNTRY_CITIES[details.country ?? ''] ?? []).map((city) => <SelectItem key={city} value={city}>{city}</SelectItem>)}</SelectContent>
             </Select>
           </div>
         </div>
@@ -745,8 +730,8 @@ function CareerStrategyStep({ details, patchDetails }: { details: IndividualProf
             <label className="text-sm font-medium text-slate-800">Career goal / target role <span className="text-rose-600">*</span>
               <Select value={details.strategyRole || '__unset__'} onValueChange={(value) => patchDetails({ strategyRole: value === '__unset__' ? '' : value, focusSkill: '' })}><SelectTrigger className={LIGHT_SELECT}><SelectValue placeholder="Choose a target role" /></SelectTrigger><SelectContent><SelectItem value="__unset__">Choose a target role</SelectItem>{enhanceRoleOptions.map(({ role }) => <SelectItem key={role.slug} value={role.slug}>{role.title}</SelectItem>)}</SelectContent></Select>
             </label>
-            <div><p className="text-sm font-medium text-slate-800">Priority skill to strengthen <span className="text-rose-600">*</span></p><p className="mt-1 text-xs text-slate-500">Suggestions are based on this career goal and your skill levels.</p>
-              <div className="mt-2 space-y-2">{enhanceSkillOptions.map(({ skill, req, current }) => <button key={skill.slug} type="button" aria-pressed={details.focusSkill === skill.slug} onClick={() => patchDetails({ focusSkill: skill.slug })} className={`w-full rounded-xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${details.focusSkill === skill.slug ? 'border-blue-500 dark:border-blue-500 bg-blue-50 ring-1 ring-blue-200 dark:ring-blue-800' : 'border-blue-100 dark:border-slate-700 bg-white hover:border-blue-300 dark:hover:border-blue-700'}`}><span className="flex items-center justify-between gap-2"><span className="text-sm font-semibold text-slate-900">{skill.name}</span>{details.focusSkill === skill.slug && <Check className="h-4 w-4 text-blue-600" aria-hidden />}</span><span className="mt-1 block text-xs leading-5 text-slate-600">Why it matters: a core skill for {enhanceRole.title}. Your level is {current}/5; the role profile lists level {req.minLevel}.</span></button>)}</div>
+            <div><p className="text-sm font-medium text-slate-800">Priority skill to strengthen <span className="text-rose-600">*</span></p>
+              <Select value={details.focusSkill || '__unset__'} onValueChange={(value) => patchDetails({ focusSkill: value === '__unset__' ? '' : value })}><SelectTrigger className={LIGHT_SELECT}><SelectValue placeholder="Choose a skill" /></SelectTrigger><SelectContent><SelectItem value="__unset__">Choose a skill</SelectItem>{enhanceSkillOptions.map(({ skill }) => <SelectItem key={skill.slug} value={skill.slug}>{skill.name}</SelectItem>)}</SelectContent></Select>
             </div>
           </div>
           {!hasPersonalData && <p className="text-xs text-slate-500">General suggestions shown because profile details are limited.</p>}
