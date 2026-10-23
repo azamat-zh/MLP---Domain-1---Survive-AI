@@ -491,13 +491,6 @@ export function FutureRadarStep({ details, onScenario }: { details: IndividualPr
           </div>
           <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-300">Personalized from your profile, interests, skills, SkillCast pathways, and current signals.</p>
         </div>
-        <div className="flex w-full rounded-xl border border-blue-100 dark:border-slate-700 bg-white p-1 sm:w-auto" role="group" aria-label="AI adoption scenario">
-          {(['moderate', 'accelerated'] as const).map((option) => (
-            <button key={option} type="button" aria-pressed={scenario === option} onClick={() => onScenario(option)} className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors sm:flex-none ${scenario === option ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700'}`}>
-              {option === 'moderate' ? 'Moderate adoption' : 'Fast adoption'}
-            </button>
-          ))}
-        </div>
       </header>
 
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-100 dark:border-slate-700 bg-white px-4 py-3">
