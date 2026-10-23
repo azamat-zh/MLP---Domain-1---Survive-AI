@@ -173,13 +173,13 @@ export async function ingestLiveSignals(): Promise<IngestResult> {
     { name: 'Arbeitnow Job Board API', url: ARBEITNOW_URL, kind: 'live', fn: fetchArbeitnow },
     {
       name: 'Greenhouse Job Boards',
-      url: `https://boards-api.greenhouse.io/v1/boards/${GREENHOUSE_BOARDS.join('|')}/jobs`,
+      url: `https://boards-api.greenhouse.io/v1/boards/${GREENHOUSE_BOARDS[0]}/jobs`,
       kind: 'live',
       fn: fetchGreenhouse,
     },
     {
       name: 'Ashby Job Boards',
-      url: `https://api.ashbyhq.com/posting-api/job-board/${ASHBY_ORGS.join('|')}`,
+      url: `https://api.ashbyhq.com/posting-api/job-board/${ASHBY_ORGS[0]}`,
       kind: 'live',
       fn: fetchAshby,
     },
@@ -257,7 +257,7 @@ export function seedSnapshots(): SkillSnapshot[] {
       postings,
       recentPostings: recent,
       earlierPostings: postings - recent,
-      frequency: Math.round((postings / 60) * 100) / 100,
+      frequency: 0,
       trend: Math.round(40 + s.seedMomentum * 0.2),
       momentum: s.seedMomentum,
     };

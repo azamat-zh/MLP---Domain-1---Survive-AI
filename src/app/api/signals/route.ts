@@ -136,6 +136,18 @@ async function pruneOldRuns() {
   try {
     // SignalSnapshot cascade-deletes with its run.
     await db.signalRun.deleteMany({ where: { createdAt: { lt: cutoff } } });
+    // Prune changelog entries older than the retention window.
+    await db.changelogEntry.deleteMany({ where: { createdAt: { lt: cutoff } } });
+    // Cap survivors to the newest 50 entries.
+    const keep = await db.changelogEntry.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      select: { id: true },
+    });
+    if (keep.length > 0) {
+      const keepIds = keep.map((e) => e.id);
+      await db.changelogEntry.deleteMany({ where: { id: { notIn: keepIds } } });
+    }
   } catch (e) {
     console.error('[api/signals] prune failed', e);
   }
@@ -147,6 +159,10 @@ async function ensureFreshRun(force: boolean) {
   // Forced refreshes are throttled: a second force within the cooldown window
   // serves the freshest run instead of re-ingesting (no DB write, no fetches).
   if (force && latest && Date.now() - lastForcedAt < FORCE_COOLDOWN_MS) {
+    await db.signalRun.update({
+      where: { id: latest.id },
+      data: { note: `Refresh throttled (cooldown active) — showing data from ${latest.createdAt.toLocaleString()}.` },
+    });
     return latest.id;
   }
   if (force || stale || !latest) {
@@ -169,7 +185,24 @@ export async function GET() {
     const runId = await ensureFreshRun(false);
     const payload = await payloadFor(runId);
     return NextResponse.json(payload);
-  } catch (e) {
+  } catch (e: unknown) {
+    const errMsg = typeof e === 'object' && e ? String((e as Record<string, unknown>).message ?? e) : String(e);
+    const isDbError =
+      ((typeof e === 'object' && e) ? (e as Record<string, unknown>).code : undefined) === 'P2021' ||
+      /did not initialize|does not exist|Unable to open|no such table/i.test(errMsg);
+    if (isDbError) {
+      console.warn('[api/signals] GET returning seeded baseline (DB not ready)');
+      return NextResponse.json({
+        runId: 'seed',
+        fetchedAt: new Date().toISOString(),
+        live: false,
+        totalPostings: 0,
+        sources: [SEED_SOURCE],
+        note: 'Database not initialised — run bun run db:push. Showing seeded baseline.',
+        snapshots: seedSnapshots(),
+        changelog: [],
+      });
+    }
     console.error('[api/signals] GET failed', e);
     return NextResponse.json({ error: 'signal pipeline failed' }, { status: 500 });
   }
@@ -180,7 +213,24 @@ export async function POST() {
     const runId = await ensureFreshRun(true);
     const payload = await payloadFor(runId);
     return NextResponse.json(payload);
-  } catch (e) {
+  } catch (e: unknown) {
+    const errMsg = typeof e === 'object' && e ? String((e as Record<string, unknown>).message ?? e) : String(e);
+    const isDbError =
+      ((typeof e === 'object' && e) ? (e as Record<string, unknown>).code : undefined) === 'P2021' ||
+      /did not initialize|does not exist|Unable to open|no such table/i.test(errMsg);
+    if (isDbError) {
+      console.warn('[api/signals] POST returning seeded baseline (DB not ready)');
+      return NextResponse.json({
+        runId: 'seed',
+        fetchedAt: new Date().toISOString(),
+        live: false,
+        totalPostings: 0,
+        sources: [SEED_SOURCE],
+        note: 'Database not initialised — run bun run db:push. Showing seeded baseline.',
+        snapshots: seedSnapshots(),
+        changelog: [],
+      });
+    }
     console.error('[api/signals] POST failed', e);
     return NextResponse.json({ error: 'signal refresh failed' }, { status: 500 });
   }

@@ -334,6 +334,8 @@ const en: Dict = {
   'match.pathweeks': '≈ {n} weeks to close the gap at your learning budget',
   'match.entrylevel': 'Internship-friendly',
   'match.viewpath': 'View pathway',
+  'match.guidance': 'Pick a direction, compare the roles, then choose one to build your roadmap.',
+  'match.empty': 'No roles in this direction yet — try another path above.',
 
   'pw.title': 'Your reskilling pathway',
   'pw.subtitle': 'Ordered by gap priority · every resource is real and cited',
@@ -762,6 +764,8 @@ const ms: Dict = {
   'match.pathweeks': '≈ {n} minggu untuk tutup jurang pada bajet belajar anda',
   'match.entrylevel': 'Mesra internship',
   'match.viewpath': 'Lihat laluan',
+  'match.guidance': 'Pilih arah, bandingkan peranan, kemudian pilih satu untuk membina laluan anda.',
+  'match.empty': 'Tiada peranan dalam arah ini lagi — cuba laluan lain di atas.',
 
   'pw.title': 'Laluan latihan semula anda',
   'pw.subtitle': 'Disusun mengikut keutamaan jurang · setiap sumber adalah sebenar dan tersitat',
@@ -1189,6 +1193,8 @@ const zh: Dict = {
   'match.pathweeks': '按你的学习预算约需 {n} 周补齐差距',
   'match.entrylevel': '适合实习',
   'match.viewpath': '查看路径',
+  'match.guidance': '选择一个方向，比较各个角色，然后选择一个构建你的路线图。',
+  'match.empty': '该方向暂无角色 — 请尝试其他方向。',
 
   'pw.title': '你的再培训路径',
   'pw.subtitle': '按差距优先级排序 · 每项资源真实可查',
@@ -1616,6 +1622,8 @@ const ru: Dict = {
   'match.pathweeks': '≈ {n} недель, чтобы закрыть разрыв при вашем темпе',
   'match.entrylevel': 'Подходит для стажировки',
   'match.viewpath': 'Смотреть маршрут',
+  'match.guidance': 'Выберите направление, сравните роли, затем выберите одну для построения вашего маршрута.',
+  'match.empty': 'В этом направлении пока нет ролей — попробуйте другое.',
 
   'pw.title': 'Ваш маршрут переобучения',
   'pw.subtitle': 'По приоритету разрывов · каждый ресурс реален и цитируем',

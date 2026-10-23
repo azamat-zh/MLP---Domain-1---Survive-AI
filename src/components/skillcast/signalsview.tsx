@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Database, RadioTower, RefreshCw, ScrollText } from 'lucide-react';
+import { Database, FileWarning, RadioTower, RefreshCw, ScrollText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,11 +13,11 @@ import { useSignals, SourceChip, useT } from './shared';
 
 export function SignalsView() {
   const t = useT();
-  const { data, loading, refreshing, refresh } = useSignals();
+  const { data, loading, refreshing, refresh, error } = useSignals();
   const [showSample, setShowSample] = useState(false);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16">
+    <div className="mx-auto max-w-6xl px-4 pb-8">
       <div className="mt-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
@@ -32,6 +32,28 @@ export function SignalsView() {
           {refreshing ? t('ov.refreshing') : t('sig.refresh')}
         </Button>
       </div>
+
+      {/* Error state */}
+      {error && (
+        <div className="mt-4 rounded-lg border border-red-500 bg-red-50/30 p-4">
+          <p className="flex items-center gap-2 text-sm font-semibold text-red-700 dark:text-red-400">
+            <FileWarning className="h-5 w-5" aria-hidden />
+            Could not load signals
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{error}</p>
+          <Button variant="outline" size="sm" onClick={() => void refresh()} className="mt-2 gap-2">
+            <RefreshCw className="h-4 w-4" aria-hidden />
+            Retry
+          </Button>
+        </div>
+      )}
+
+      {/* Data note */}
+      {data?.note && !error && (
+        <div className="mt-4 rounded-lg border border-amber-400 bg-amber-50/20 p-3 text-sm text-amber-800 dark:text-amber-300">
+          {data.note}
+        </div>
+      )}
 
       {/* Current run */}
       <Card className="mt-4">

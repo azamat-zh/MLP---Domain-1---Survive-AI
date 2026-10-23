@@ -278,7 +278,6 @@ body:has(.skillcast-landing) footer {
   --accent-foreground: #1e3a8a;
   --border: #dbe6f7;
   --input: #dbe6f7;
-  min-height: calc(100vh - 64px);
   background:
     radial-gradient(ellipse at 50% 0%, rgb(219 234 254 / 65%), transparent 44%),
     linear-gradient(180deg, #f8faff 0%, #f3f7ff 100%);

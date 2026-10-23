@@ -49,6 +49,9 @@ export function SignalsProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Trade-off: eager load on mount means the signals request fires even on
+  // pages that never call useSignals(). The alternative — deferring to first
+  // access — adds latency on the first interaction.
   useEffect(() => {
     void load('GET');
   }, []);

@@ -50,10 +50,10 @@ function StepUserType() {
     { id: 'employer' as const, icon: Building2, title: 'Employer', desc: 'Explore your team profile, workforce skill gaps, and reskilling options.' },
   ];
   return (
-    <div className="skillcast-onboarding min-h-[calc(100vh-64px)] px-4 py-8 sm:py-12">
+    <div className="skillcast-onboarding px-4 py-8 sm:py-12">
       <div className="mx-auto max-w-3xl">
         <StepProgress step={1} total={6} />
-        <Card className="mt-5 border-blue-100 bg-white shadow-[0_16px_60px_rgba(39,70,130,.08)]">
+        <Card className="mt-5 border-blue-100 dark:border-slate-700 bg-white shadow-[0_16px_60px_rgba(39,70,130,.08)]">
           <CardHeader>
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-600">Step 1 · Choose your path</p>
             <CardTitle className="text-2xl text-slate-950">How would you like to use SkillCast?</CardTitle>
@@ -65,7 +65,7 @@ function StepUserType() {
                 key={path.id}
                 type="button"
                 onClick={() => setUserType(path.id)}
-                className="group min-h-48 rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/70 p-5 text-left transition-all hover:-translate-y-1 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="group min-h-48 rounded-2xl border border-blue-100 dark:border-slate-700 bg-gradient-to-br from-white dark:from-slate-900 to-blue-50/70 dark:to-slate-800 p-5 text-left transition-all hover:-translate-y-1 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg hover:shadow-blue-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               >
                 <span className="flex items-center justify-between">
                   <path.icon className="h-8 w-8 text-blue-600" aria-hidden />
@@ -96,7 +96,7 @@ function StepProgress({ step, total }: { step: number; total: number }) {
       </div>
       <div className="flex items-center gap-2" aria-hidden="true">
         {Array.from({ length: total }, (_, index) => (
-          <span key={index} className={`h-2 flex-1 rounded-full ${index < step ? 'bg-blue-600' : 'bg-blue-100'}`} />
+          <span key={index} className={`h-2 flex-1 rounded-full ${index < step ? 'bg-blue-600' : 'bg-blue-100 dark:bg-slate-700'}`} />
         ))}
       </div>
     </div>
@@ -106,11 +106,11 @@ function StepProgress({ step, total }: { step: number; total: number }) {
 // ─── Shared onboarding shell (progress + nav) ──────────────────────────────
 
 function OnboardingShell({
-  step, total, title, desc, icon: Icon, onBack, onNext, nextDisabled, children, finish, privacyNote, light = false,
+  step, total, title, desc, icon: Icon, onBack, onNext, nextDisabled, children, finish, privacyNote, light = false, onSkip,
 }: {
   step: number; total: number; title: string; desc?: string; icon: typeof User;
   onBack: () => void; onNext: () => void; nextDisabled: boolean; children: React.ReactNode;
-  finish?: () => void; privacyNote?: boolean; light?: boolean;
+  finish?: () => void; privacyNote?: boolean; light?: boolean; onSkip?: () => void;
 }) {
   const t = useT();
   const individualStepTitles = [
@@ -118,11 +118,11 @@ function OnboardingShell({
     'Future Skills Radar', 'Career Strategy', 'Work Preferences',
   ];
   return (
-    <div className={light ? 'skillcast-onboarding min-h-[calc(100vh-64px)] px-4 py-8 sm:py-12' : undefined}>
-      <div className={`mx-auto pb-16 ${light ? 'max-w-6xl px-0 lg:grid lg:grid-cols-[250px_minmax(0,1fr)] lg:items-start lg:gap-7' : 'max-w-3xl px-4'}`}>
+    <div className={light ? 'skillcast-onboarding px-4 py-8 sm:py-12' : undefined}>
+      <div className={`mx-auto pb-8 ${light ? 'max-w-6xl px-0 lg:grid lg:grid-cols-[250px_minmax(0,1fr)] lg:items-start lg:gap-7' : 'max-w-3xl px-4'}`}>
         {light ? (
           <>
-            <aside className="mb-4 hidden rounded-2xl border border-blue-100 bg-white/90 p-4 shadow-sm lg:sticky lg:top-24 lg:col-start-1 lg:row-start-1 lg:block">
+            <aside className="mb-4 hidden rounded-2xl border border-blue-100 dark:border-slate-700 bg-white/90 p-4 shadow-sm lg:sticky lg:top-24 lg:col-start-1 lg:row-start-1 lg:block">
               <p className="px-2 pb-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Your progress</p>
               <ol aria-label={`Step ${step} of ${total}`} className="space-y-1">
                 {individualStepTitles.map((label, index) => {
@@ -130,11 +130,11 @@ function OnboardingShell({
                   const complete = number < step;
                   const active = number === step;
                   return (
-                    <li key={label} aria-current={active ? 'step' : undefined} className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm ${active ? 'bg-blue-50 font-semibold text-blue-800 ring-1 ring-blue-100' : complete ? 'text-slate-700' : 'text-slate-400'}`}>
-                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${complete ? 'bg-blue-600 text-white' : active ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400'}`}>
+                    <li key={label} aria-current={active ? 'step' : undefined} className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm ${active ? 'bg-blue-50 font-semibold text-blue-800 ring-1 ring-blue-100 dark:ring-blue-900' : complete ? 'text-slate-700' : 'text-slate-400'}`}>
+                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${complete ? 'bg-blue-600 text-white' : active ? 'bg-blue-100 dark:bg-slate-700 text-blue-700' : 'bg-slate-100 text-slate-400'}`}>
                         {complete ? <Check className="h-4 w-4" aria-label="Completed" /> : number}
                       </span>
-                      <span>{label}</span>
+                      <span>{label}{[2, 3, 5].includes(index) ? ' (optional)' : ''}</span>
                     </li>
                   );
                 })}
@@ -154,7 +154,7 @@ function OnboardingShell({
           </div>
         )}
 
-        <Card className={`mt-4 border-blue-100 bg-white shadow-[0_16px_60px_rgba(39,70,130,.08)] ${light ? 'lg:col-start-2 lg:row-start-1' : 'border-border bg-card shadow-none'}`}>
+        <Card className={`mt-4 border-blue-100 dark:border-slate-700 bg-white shadow-[0_16px_60px_rgba(39,70,130,.08)] ${light ? 'lg:col-start-2 lg:row-start-1' : 'border-border bg-card shadow-none'}`}>
           <CardHeader>
             <CardTitle className={`flex items-center gap-2 ${light ? 'text-slate-950' : ''}`}>
               <Icon className={`h-5 w-5 ${light ? 'text-blue-600' : 'text-teal-600 dark:text-teal-400'}`} aria-hidden /> {title}
@@ -165,6 +165,11 @@ function OnboardingShell({
         </Card>
 
         <div className={`mt-4 flex items-center justify-between ${light ? 'lg:col-start-2' : ''}`}>
+          {onSkip && (
+            <Button variant="ghost" onClick={onSkip} className="text-slate-600 hover:text-blue-800">
+              Skip for now
+            </Button>
+          )}
           <Button variant="ghost" onClick={onBack} className={light ? 'text-slate-600 hover:bg-blue-50 hover:text-blue-800' : ''}>
             <ArrowLeft className="mr-1 h-4 w-4" aria-hidden /> {t('common.back')}
           </Button>
@@ -172,7 +177,7 @@ function OnboardingShell({
             <Button
               onClick={onNext}
               disabled={nextDisabled}
-              className={`gap-1 ${light ? 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300' : 'bg-teal-700 text-white hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500'}`}
+              className={`gap-1 ${light ? 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300 dark:disabled:bg-blue-900' : 'bg-teal-700 text-white hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500'}`}
             >
               Continue <ArrowRight className="h-4 w-4" aria-hidden />
             </Button>
@@ -234,7 +239,7 @@ function IndividualOnboarding() {
 
   const canNext = useMemo(() => {
     switch (step) {
-      case 2: return Boolean(details.employmentStatus && details.profession?.trim() && details.specialization?.trim() && yearsValid && details.educationLevel && details.country && details.city && Object.keys(profile.skills).length > 0);
+      case 2: return Boolean(details.employmentStatus && yearsValid);
       case 3: return profile.interests.length > 0 && profile.budget >= 1 && profile.budget <= 25;
       case 5:
         if (details.careerStrategy === 'enhance') return Boolean(details.strategyRole && details.focusSkill);
@@ -273,6 +278,7 @@ function IndividualOnboarding() {
       icon={step === 2 ? User : step === 3 ? Target : step === 4 ? Radar : step === 5 ? Briefcase : SlidersHorizontal}
       onBack={back}
       onNext={() => setStep((s) => Math.min(INDIVIDUAL_STEPS, s + 1))}
+      onSkip={step === 3 || step === 4 ? () => setStep((s) => Math.min(INDIVIDUAL_STEPS, s + 1)) : undefined}
       nextDisabled={!canNext}
       finish={finish}
       privacyNote={step === 2}
@@ -372,7 +378,7 @@ function ProfileStep({
         <p className="text-xs text-slate-500">Fields marked * are required. Experience must be a whole number from 0 to 60.</p>
       </section>
 
-      <section className="space-y-4 border-t border-blue-100 pt-6">
+      <section className="space-y-4 border-t border-blue-100 dark:border-slate-700 pt-6">
         <div>
           <h3 className="font-semibold text-slate-900">Upload Your CV</h3>
           <p className="text-sm text-slate-500">Upload a CV for private, scrubbed extraction, or enter skills yourself below.</p>
@@ -380,7 +386,7 @@ function ProfileStep({
         <CvStep onDone={() => {}} showContinue={false} preserveProfile />
       </section>
 
-      <section className="space-y-4 border-t border-blue-100 pt-6">
+      <section className="space-y-4 border-t border-blue-100 dark:border-slate-700 pt-6">
         <div>
           <h3 className="font-semibold text-slate-900">Skills Assessment</h3>
           <p className="text-sm text-slate-600">Choose skills and rate your current level. Add at least one skill to continue.</p>
@@ -388,7 +394,7 @@ function ProfileStep({
         <StepSkills />
       </section>
 
-      <section className="space-y-3 border-t border-blue-100 pt-6">
+      <section className="space-y-3 border-t border-blue-100 dark:border-slate-700 pt-6">
         <div>
           <h3 className="font-semibold text-slate-900">Languages</h3>
           <p className="text-sm text-slate-500">Add any languages you use and select your proficiency.</p>
@@ -399,10 +405,10 @@ function ProfileStep({
         </Select>
         <div className="space-y-2">
           {languages.map((item) => (
-            <div key={item.language} className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
+            <div key={item.language} className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-100 dark:border-slate-700 bg-blue-50/50 p-3">
               <span className="min-w-28 flex-1 text-sm font-medium text-slate-800">{item.language}</span>
               <Select value={item.proficiency} onValueChange={(value) => updateProficiency(item.language, value as typeof PROFICIENCY_OPTIONS[number])}>
-                <SelectTrigger aria-label={`${item.language} proficiency`} className="h-11 w-40 rounded-xl border-blue-100 bg-white text-sm text-slate-900 shadow-sm hover:border-blue-200 focus:ring-2 focus:ring-blue-100"><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label={`${item.language} proficiency`} className="h-11 w-40 rounded-xl border-blue-100 dark:border-slate-700 bg-white text-sm text-slate-900 shadow-sm hover:border-blue-200 focus:ring-2 focus:ring-blue-100"><SelectValue /></SelectTrigger>
                 <SelectContent>{PROFICIENCY_OPTIONS.map((level) => <SelectItem key={level} value={level}>{level[0].toUpperCase() + level.slice(1)}</SelectItem>)}</SelectContent>
               </Select>
               <Button type="button" variant="ghost" size="sm" onClick={() => removeLanguage(item.language)} className="text-slate-500">Remove</Button>
@@ -419,9 +425,9 @@ function InterestsGoalsStep() {
   return (
     <div className="space-y-6">
       <StepInterests />
-      <section className="border-t border-blue-100 pt-6">
+      <section className="border-t border-blue-100 dark:border-slate-700 pt-6">
         <Label htmlFor="career-goal" className="text-slate-800">What would you like to achieve in your career?</Label>
-        <Textarea id="career-goal" value={profile.objective} maxLength={500} onChange={(e) => setProfile({ objective: e.target.value.slice(0, 500) })} placeholder="Describe the role, change, or outcome you are working toward…" rows={4} className="mt-2 border-blue-100 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-blue-200" />
+        <Textarea id="career-goal" value={profile.objective} maxLength={500} onChange={(e) => setProfile({ objective: e.target.value.slice(0, 500) })} placeholder="Describe the role, change, or outcome you are working toward…" rows={4} className="mt-2 border-blue-100 dark:border-slate-700 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-blue-200" />
         <p className="mt-1 text-right text-xs text-slate-500">{profile.objective.length} / 500</p>
       </section>
     </div>
@@ -492,7 +498,7 @@ export function FutureRadarStep({ details, onScenario }: { details: IndividualPr
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-4 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+      <header className="flex flex-col gap-4 rounded-2xl border border-blue-100 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-semibold text-slate-900">Your Future Skills Radar</h3>
@@ -500,7 +506,7 @@ export function FutureRadarStep({ details, onScenario }: { details: IndividualPr
           </div>
           <p className="mt-1 max-w-2xl text-sm text-slate-600">Personalized from your profile, interests, skills, SkillCast pathways, and current signals.</p>
         </div>
-        <div className="flex w-full rounded-xl border border-blue-100 bg-white p-1 sm:w-auto" role="group" aria-label="AI adoption scenario">
+        <div className="flex w-full rounded-xl border border-blue-100 dark:border-slate-700 bg-white p-1 sm:w-auto" role="group" aria-label="AI adoption scenario">
           {(['moderate', 'accelerated'] as const).map((option) => (
             <button key={option} type="button" aria-pressed={scenario === option} onClick={() => onScenario(option)} className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors sm:flex-none ${scenario === option ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700'}`}>
               {option === 'moderate' ? 'Moderate adoption' : 'Fast adoption'}
@@ -509,13 +515,13 @@ export function FutureRadarStep({ details, onScenario }: { details: IndividualPr
         </div>
       </header>
 
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-100 bg-white px-4 py-3">
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-100 dark:border-slate-700 bg-white px-4 py-3">
         <Badge variant="outline" className="border-blue-200 text-blue-700">Demo indices</Badge>
         <p className="text-xs leading-5 text-slate-600">Sample estimates only: not verified market statistics, live job opportunities, or guaranteed forecasts. {loading ? 'Loading current SkillCast signals; curated skill values are used where needed.' : data?.live ? 'Current signals inform skill momentum only.' : 'Curated fallback signals inform skill momentum where live data is unavailable.'}</p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="border-blue-100 bg-white shadow-sm">
+        <Card className="border-blue-100 dark:border-slate-700 bg-white shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-base text-slate-900">Market Demand</CardTitle>
             <CardDescription>Scenario demand index for your highest-matching career pathways (0–100).</CardDescription>
@@ -535,7 +541,7 @@ export function FutureRadarStep({ details, onScenario }: { details: IndividualPr
           </CardContent>
         </Card>
 
-        <Card className="border-blue-100 bg-white shadow-sm">
+        <Card className="border-blue-100 dark:border-slate-700 bg-white shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-base text-slate-900">Employment Outlook</CardTitle>
             <CardDescription>Illustrative direction index across time horizons for the selected scenario.</CardDescription>
@@ -556,7 +562,7 @@ export function FutureRadarStep({ details, onScenario }: { details: IndividualPr
           </CardContent>
         </Card>
 
-        <Card className="border-blue-100 bg-white shadow-sm">
+        <Card className="border-blue-100 dark:border-slate-700 bg-white shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-base text-slate-900">AI Task Exposure</CardTitle>
             <CardDescription>Qualitative indicator based on matched-role exposure fields and the selected scenario.</CardDescription>
@@ -568,7 +574,7 @@ export function FutureRadarStep({ details, onScenario }: { details: IndividualPr
                 <span className="text-xs text-slate-500">Illustrative rating</span>
               </div>
               <div className="mt-4 grid grid-cols-3 gap-2" role="img" aria-label={`${exposureRating} AI task exposure, shown on a three-level indicator`}>
-                {['Lower', 'Moderate', 'Higher'].map((label, index) => <div key={label} className={`h-3 rounded-full ${index < exposureSegments ? 'bg-blue-600' : 'bg-blue-100'}`} />)}
+                {['Lower', 'Moderate', 'Higher'].map((label, index) => <div key={label} className={`h-3 rounded-full ${index < exposureSegments ? 'bg-blue-600' : 'bg-blue-100 dark:bg-slate-700'}`} />)}
               </div>
               <div className="mt-2 flex justify-between text-[11px] text-slate-500"><span>Lower</span><span>Moderate</span><span>Higher</span></div>
               <p className="mt-4 rounded-lg bg-blue-50 px-3 py-2 text-xs leading-5 text-slate-600">Task exposure describes how work tasks may be affected by AI. It is <strong>not</strong> the probability that your job will be replaced.</p>
@@ -576,7 +582,7 @@ export function FutureRadarStep({ details, onScenario }: { details: IndividualPr
           </CardContent>
         </Card>
 
-        <Card className="border-blue-100 bg-white shadow-sm">
+        <Card className="border-blue-100 dark:border-slate-700 bg-white shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-base text-slate-900">Emerging Skills to Explore</CardTitle>
             <CardDescription>Skill taxonomy recommendations informed by your pathway gaps, profile, and signal momentum.</CardDescription>
@@ -584,7 +590,7 @@ export function FutureRadarStep({ details, onScenario }: { details: IndividualPr
           <CardContent>
             {loading && <p className="mb-3 text-xs text-slate-500">Refreshing signal context… using curated momentum values as needed.</p>}
             {skillRecommendations.length ? <ul className="space-y-3">
-              {skillRecommendations.map(({ skill, currentLevel, momentum, reason }) => <li key={skill.slug} className="rounded-xl border border-blue-100 bg-white p-3">
+              {skillRecommendations.map(({ skill, currentLevel, momentum, reason }) => <li key={skill.slug} className="rounded-xl border border-blue-100 dark:border-slate-700 bg-white p-3">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div><p className="text-sm font-semibold text-slate-900">{skill.name}</p><p className="text-xs text-slate-500">{skill.category}</p></div>
                   <Badge variant="outline" className="border-blue-200 text-blue-700">Momentum {momentum}/100</Badge>
@@ -715,7 +721,7 @@ function CareerStrategyStep({ details, patchDetails }: { details: IndividualProf
       <p className="text-sm text-slate-600">Choose the direction that best fits your goals. Each path asks for the details needed to personalize your next steps.</p>
       <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Career strategy">
         {CAREER_STRATEGIES.map((item) => (
-          <button key={item.id} type="button" role="radio" aria-checked={details.careerStrategy === item.id} onClick={() => patchDetails(details.careerStrategy === item.id ? { careerStrategy: item.id } : { careerStrategy: item.id, strategyRole: '', focusSkill: '', newField: '', aiGoal: '', aiSkill: '' })} className={`min-h-36 rounded-xl border p-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${details.careerStrategy === item.id ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-100' : 'border-blue-100 bg-white hover:border-blue-300 hover:bg-blue-50/40'}`}>
+          <button key={item.id} type="button" role="radio" aria-checked={details.careerStrategy === item.id} onClick={() => patchDetails(details.careerStrategy === item.id ? { careerStrategy: item.id } : { careerStrategy: item.id, strategyRole: '', focusSkill: '', newField: '', aiGoal: '', aiSkill: '' })} className={`min-h-36 rounded-xl border p-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${details.careerStrategy === item.id ? 'border-blue-500 dark:border-blue-500 bg-blue-50 ring-2 ring-blue-100 dark:ring-blue-900' : 'border-blue-100 dark:border-slate-700 bg-white hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50/40'}`}>
             <item.icon className="h-5 w-5 text-blue-600" aria-hidden />
             <span className="mt-3 block font-semibold text-slate-900">{item.title}</span>
             <span className="mt-1.5 block text-sm leading-5 text-slate-600">{item.desc}</span>
@@ -724,13 +730,13 @@ function CareerStrategyStep({ details, patchDetails }: { details: IndividualProf
       </div>
 
       {details.careerStrategy === 'enhance' && (
-        <section className="space-y-4 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 sm:p-5" aria-label="Keep your career relevant with AI guidance">
+        <section className="space-y-4 rounded-2xl border border-blue-100 dark:border-slate-700 bg-blue-50/50 p-4 sm:p-5" aria-label="Keep your career relevant with AI guidance">
           <div><h3 className="font-semibold text-slate-900">Keep your experience relevant as AI changes work</h3><p className="mt-1 text-sm leading-6 text-slate-600">AI may change how tasks are completed in {details.profession || 'your profession'}, especially structured or repetitive work. Learning to guide these tools, check their output, and protect sensitive information can help you adapt while your expertise and judgment remain central. These practical suggestions use the current SkillCast skills taxonomy.</p></div>
-          <div className="rounded-xl border border-blue-100 bg-white p-4"><h4 className="text-sm font-semibold text-slate-900">Tasks AI may assist with</h4><ul className="mt-2 grid gap-1.5 text-sm text-slate-600 sm:grid-cols-3">{taskExamples.map((task) => <li key={task} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" aria-hidden />{task}</li>)}</ul><p className="mt-2 text-xs text-slate-500">Examples only; suitability depends on the task, approved tools, and workplace rules. Review outputs before relying on them.</p></div>
+          <div className="rounded-xl border border-blue-100 dark:border-slate-700 bg-white p-4"><h4 className="text-sm font-semibold text-slate-900">Tasks AI may assist with</h4><ul className="mt-2 grid gap-1.5 text-sm text-slate-600 sm:grid-cols-3">{taskExamples.map((task) => <li key={task} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" aria-hidden />{task}</li>)}</ul><p className="mt-2 text-xs text-slate-500">Examples only; suitability depends on the task, approved tools, and workplace rules. Review outputs before relying on them.</p></div>
           <div className="space-y-3">
             <div><h4 className="text-sm font-semibold text-slate-900">Personalized AI skills worth learning</h4><p className="mt-1 text-xs text-slate-600">Beginner-friendly ideas connected to {details.profession || details.fieldOfWork || (generalAiSuggestions ? 'general workplace tasks' : 'your profile')}. Open a suggestion to see a practical first step.</p></div>
-            {generalAiSuggestions && <p className="rounded-lg border border-blue-100 bg-white px-3 py-2 text-xs text-slate-600">General suggestions: add a profession or field in your profile for more tailored examples.</p>}
-            <div className="grid gap-3 sm:grid-cols-2">{aiRecommendations.map(({ skill, guidance }) => <details key={skill.slug} className="group rounded-xl border border-blue-100 bg-white p-4">
+            {generalAiSuggestions && <p className="rounded-lg border border-blue-100 dark:border-slate-700 bg-white px-3 py-2 text-xs text-slate-600">General suggestions: add a profession or field in your profile for more tailored examples.</p>}
+            <div className="grid gap-3 sm:grid-cols-2">{aiRecommendations.map(({ skill, guidance }) => <details key={skill.slug} className="group rounded-xl border border-blue-100 dark:border-slate-700 bg-white p-4">
               <summary className="cursor-pointer list-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"><span className="flex items-start justify-between gap-3"><span><span className="block text-sm font-semibold text-slate-900">{skill.name}</span><span className="mt-1 block text-xs leading-5 text-slate-600">{guidance.plain}</span></span><Badge variant="outline" className="shrink-0 border-blue-200 text-blue-700">{guidance.difficulty}</Badge></span><span className="mt-2 block text-xs font-medium text-blue-700 group-open:hidden">See a practical example and learning steps</span></summary>
               <div className="mt-3 space-y-2 border-t border-blue-50 pt-3 text-xs leading-5 text-slate-600"><p><strong className="text-slate-800">Workplace example:</strong> {guidance.example}</p><p><strong className="text-slate-800">How it can help:</strong> {guidance.benefit}</p><p><strong className="text-slate-800">Start here:</strong> {guidance.start}</p><p><strong className="text-slate-800">Next:</strong> {guidance.next}</p></div>
             </details>)}</div>
@@ -740,7 +746,7 @@ function CareerStrategyStep({ details, patchDetails }: { details: IndividualProf
               <Select value={details.strategyRole || '__unset__'} onValueChange={(value) => patchDetails({ strategyRole: value === '__unset__' ? '' : value, focusSkill: '' })}><SelectTrigger className={LIGHT_SELECT}><SelectValue placeholder="Choose a target role" /></SelectTrigger><SelectContent><SelectItem value="__unset__">Choose a target role</SelectItem>{enhanceRoleOptions.map(({ role }) => <SelectItem key={role.slug} value={role.slug}>{role.title}</SelectItem>)}</SelectContent></Select>
             </label>
             <div><p className="text-sm font-medium text-slate-800">Priority skill to strengthen <span className="text-rose-600">*</span></p><p className="mt-1 text-xs text-slate-500">Suggestions are based on this career goal and your skill levels.</p>
-              <div className="mt-2 space-y-2">{enhanceSkillOptions.map(({ skill, req, current }) => <button key={skill.slug} type="button" aria-pressed={details.focusSkill === skill.slug} onClick={() => patchDetails({ focusSkill: skill.slug })} className={`w-full rounded-xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${details.focusSkill === skill.slug ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-200' : 'border-blue-100 bg-white hover:border-blue-300'}`}><span className="flex items-center justify-between gap-2"><span className="text-sm font-semibold text-slate-900">{skill.name}</span>{details.focusSkill === skill.slug && <Check className="h-4 w-4 text-blue-600" aria-hidden />}</span><span className="mt-1 block text-xs leading-5 text-slate-600">Why it matters: a core skill for {enhanceRole.title}. Your level is {current}/5; the role profile lists level {req.minLevel}.</span></button>)}</div>
+              <div className="mt-2 space-y-2">{enhanceSkillOptions.map(({ skill, req, current }) => <button key={skill.slug} type="button" aria-pressed={details.focusSkill === skill.slug} onClick={() => patchDetails({ focusSkill: skill.slug })} className={`w-full rounded-xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${details.focusSkill === skill.slug ? 'border-blue-500 dark:border-blue-500 bg-blue-50 ring-1 ring-blue-200 dark:ring-blue-800' : 'border-blue-100 dark:border-slate-700 bg-white hover:border-blue-300 dark:hover:border-blue-700'}`}><span className="flex items-center justify-between gap-2"><span className="text-sm font-semibold text-slate-900">{skill.name}</span>{details.focusSkill === skill.slug && <Check className="h-4 w-4 text-blue-600" aria-hidden />}</span><span className="mt-1 block text-xs leading-5 text-slate-600">Why it matters: a core skill for {enhanceRole.title}. Your level is {current}/5; the role profile lists level {req.minLevel}.</span></button>)}</div>
             </div>
           </div>
           {!hasPersonalData && <p className="text-xs text-slate-500">General suggestions shown because profile details are limited.</p>}
@@ -748,9 +754,9 @@ function CareerStrategyStep({ details, patchDetails }: { details: IndividualProf
       )}
 
       {details.careerStrategy === 'related-transition' && (
-        <section className="space-y-4 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 sm:p-5" aria-label="Related role recommendations">
+        <section className="space-y-4 rounded-2xl border border-blue-100 dark:border-slate-700 bg-blue-50/50 p-4 sm:p-5" aria-label="Related role recommendations">
           <div><h3 className="font-semibold text-slate-900">Roles that connect with your experience</h3><p className="mt-1 text-sm text-slate-600">Ranked using SkillCast's match formula, your skill levels, experience, and interests{details.profession ? `, with context from ${details.profession}` : ''}. These are pathways, not job openings.</p></div>
-          <div className="grid gap-3 sm:grid-cols-2">{relatedRoles.map(({ role, match, contextual, transfer, needs }) => <button key={role.slug} type="button" aria-pressed={details.strategyRole === role.slug} onClick={() => patchDetails({ strategyRole: role.slug })} className={`rounded-xl border bg-white p-4 text-left transition hover:border-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${details.strategyRole === role.slug ? 'border-blue-500 ring-2 ring-blue-100' : 'border-blue-100'}`}>
+          <div className="grid gap-3 sm:grid-cols-2">{relatedRoles.map(({ role, match, contextual, transfer, needs }) => <button key={role.slug} type="button" aria-pressed={details.strategyRole === role.slug} onClick={() => patchDetails({ strategyRole: role.slug })} className={`rounded-xl border bg-white p-4 text-left transition hover:border-blue-300 dark:hover:border-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${details.strategyRole === role.slug ? 'border-blue-500 dark:border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900' : 'border-blue-100 dark:border-slate-700'}`}>
             <span className="flex items-start justify-between gap-2"><span><span className="block font-semibold text-slate-900">{role.title}</span><span className="mt-1 block text-xs text-slate-500">{role.category}</span></span>{details.strategyRole === role.slug && <Check className="h-4 w-4 text-blue-600" aria-hidden />}</span>
             <span className="mt-3 block text-sm leading-5 text-slate-600">{role.tagline}</span>
             <span className="mt-2 block text-xs font-medium text-blue-700">SkillCast profile fit: {match.score}/100</span><span className="mt-1 block text-[11px] leading-4 text-slate-500">Based on skill overlap, transferable skills, experience, and interests{contextual ? ' · profile wording also relates to this pathway' : ''}.</span>
@@ -761,14 +767,14 @@ function CareerStrategyStep({ details, patchDetails }: { details: IndividualProf
       )}
 
       {details.careerStrategy === 'new-field' && (
-        <section className="space-y-4 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 sm:p-5" aria-label="Explore a different field">
+        <section className="space-y-4 rounded-2xl border border-blue-100 dark:border-slate-700 bg-blue-50/50 p-4 sm:p-5" aria-label="Explore a different field">
           <div><h3 className="font-semibold text-slate-900">Explore fields that fit your interests</h3><p className="mt-1 text-sm text-slate-600">Choose a field to see example careers, everyday activities, entry skills, and mapped SDG connections.</p></div>
           <div className="grid gap-3 sm:grid-cols-2">{shownCategories.map(({ category, roles, interestMatch }) => {
             const examples = roles.slice(0, 2);
             const entryRoleSet = roles.some(({ role }) => role.entryLevel) ? roles.filter(({ role }) => role.entryLevel) : roles;
             const entrySkills = [...new Set(entryRoleSet.flatMap(({ role }) => role.skills.map((req) => req.skill)))].slice(0, 3);
             const selected = details.newField === category;
-            return <div key={category} className={`rounded-xl border bg-white p-4 transition ${selected ? 'border-blue-500 ring-2 ring-blue-100' : 'border-blue-100 hover:border-blue-300'}`}>
+            return <div key={category} className={`rounded-xl border bg-white p-4 transition ${selected ? 'border-blue-500 dark:border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900' : 'border-blue-100 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700'}`}>
               <button type="button" aria-pressed={selected} onClick={() => patchDetails({ newField: category, strategyRole: '' })} className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"><span className="flex items-center justify-between gap-2"><span className="font-semibold text-slate-900">{category}</span>{selected && <Check className="h-4 w-4 text-blue-600" aria-hidden />}</span><span className="mt-1.5 block text-sm leading-5 text-slate-600">{fieldDescriptions[category] ?? `Explore practical roles and skills in ${category.toLowerCase()}.`}</span>{interestMatch && <span className="mt-2 inline-block rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700">Matches your interests</span>}</button>
               <p className="mt-3 text-xs text-slate-600"><strong className="text-slate-800">Example careers:</strong> {examples.map(({ role }) => role.title).join('; ') || 'No mapped example yet.'}</p>
               <details className="mt-3 rounded-lg bg-blue-50/60 p-3 text-xs text-slate-600"><summary className="cursor-pointer font-semibold text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">Activities, entry skills & SDGs</summary>
@@ -779,7 +785,7 @@ function CareerStrategyStep({ details, patchDetails }: { details: IndividualProf
           })}</div>
           {categorySuggestions.length > 4 && <Button type="button" variant="outline" onClick={() => setShowAllFields((shown) => !shown)} className="border-blue-200 text-blue-700 hover:bg-blue-50">{showAllFields ? 'Show fewer fields' : 'Show all fields'}</Button>}
           {!hasPersonalData && <p className="text-xs text-slate-500">General field suggestions shown because profile details are limited.</p>}
-          {details.newField && <div className="space-y-3 rounded-xl border border-blue-100 bg-white p-4"><h4 className="font-semibold text-slate-900">{details.newField}: related roles and learning priorities</h4>
+          {details.newField && <div className="space-y-3 rounded-xl border border-blue-100 dark:border-slate-700 bg-white p-4"><h4 className="font-semibold text-slate-900">{details.newField}: related roles and learning priorities</h4>
             {fieldRoles.length ? <div className="grid gap-3 sm:grid-cols-2">{fieldRoles.slice(0, 4).map(({ role, match }) => <div key={role.slug} className="rounded-lg border border-blue-50 p-3"><p className="text-sm font-medium text-slate-900">{role.title}</p><p className="mt-1 text-xs leading-5 text-slate-600">{role.tagline}</p><p className="mt-2 text-xs text-blue-700">SkillCast profile match: {match?.score ?? '—'}/100</p><div className="mt-2 flex gap-1">{role.sdgTags.map((goal) => <SdgBadge key={goal} goal={goal} />)}</div></div>)}</div> : <p className="text-sm text-slate-600">No current roles are mapped to this field.</p>}
             <div><p className="text-sm font-semibold text-slate-900">Learning priorities</p>{fieldNeeds.length ? <ul className="mt-2 flex flex-wrap gap-2">{fieldNeeds.map(({ skill, current, target }) => <li key={skill.slug} className="rounded-full bg-blue-50 px-3 py-1.5 text-xs text-blue-800">{skill.name} · {current}/5 → role level {target}</li>)}</ul> : <p className="mt-1 text-sm text-slate-600">Your current levels cover the mapped skill requirements.</p>}</div>
           </div>}
@@ -787,9 +793,9 @@ function CareerStrategyStep({ details, patchDetails }: { details: IndividualProf
       )}
 
       {details.careerStrategy === 'ai-skills' && (
-        <section className="space-y-4 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 sm:p-5" aria-label="Practical AI skills recommendations">
+        <section className="space-y-4 rounded-2xl border border-blue-100 dark:border-slate-700 bg-blue-50/50 p-4 sm:p-5" aria-label="Practical AI skills recommendations">
           <div><h3 className="font-semibold text-slate-900">Start with practical AI skills</h3><p className="mt-1 text-sm leading-6 text-slate-600">AI skills don't necessarily mean coding. They can help you work smarter, automate repetitive tasks, and adapt as your profession changes.</p>{generalAiSuggestions && <p className="mt-2 text-xs text-slate-500">General beginner suggestions shown because profession details are limited.</p>}</div>
-          <div className="grid gap-3 sm:grid-cols-2">{aiRecommendations.map(({ skill, guidance }) => <div key={skill.slug} className={`rounded-xl border bg-white p-4 transition ${details.aiSkill === skill.slug ? 'border-blue-500 ring-2 ring-blue-100' : 'border-blue-100'}`}>
+          <div className="grid gap-3 sm:grid-cols-2">{aiRecommendations.map(({ skill, guidance }) => <div key={skill.slug} className={`rounded-xl border bg-white p-4 transition ${details.aiSkill === skill.slug ? 'border-blue-500 dark:border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900' : 'border-blue-100 dark:border-slate-700'}`}>
             <button type="button" aria-pressed={details.aiSkill === skill.slug} onClick={() => patchDetails({ aiSkill: skill.slug })} className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"><span className="flex items-start justify-between gap-2"><span><span className="block text-sm font-semibold text-slate-900">{skill.name}</span><span className="mt-1 block text-xs text-slate-500">{guidance.difficulty} · {skill.category}</span></span>{details.aiSkill === skill.slug && <Check className="h-4 w-4 text-blue-600" aria-hidden />}</span><span className="mt-2 block text-sm leading-5 text-slate-600">{guidance.plain}</span></button>
             <details className="mt-3 rounded-lg bg-blue-50/60 p-3 text-xs leading-5 text-slate-600"><summary className="cursor-pointer font-semibold text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">Workplace example and learning steps</summary><p className="mt-2"><strong className="text-slate-800">Example:</strong> {guidance.example}</p><p className="mt-1"><strong className="text-slate-800">How it can help:</strong> {guidance.benefit}</p><p className="mt-1"><strong className="text-slate-800">Start here:</strong> {guidance.start}</p><p className="mt-1"><strong className="text-slate-800">Learn next:</strong> {guidance.next}</p></details>
           </div>)}</div>
@@ -837,7 +843,7 @@ function WorkPreferencesStep({ details, patchDetails, onSkip }: { details: Indiv
       <div className="grid gap-3 sm:grid-cols-2">
         {WORK_PREFERENCES.map((item) => {
           const active = selected.includes(item.value);
-          return <button key={item.value} type="button" aria-pressed={active} onClick={() => toggle(item.value)} className={`flex items-start gap-3 rounded-xl border p-4 text-left transition ${active ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-100' : 'border-blue-100 bg-white hover:border-blue-300'}`}><item.icon className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" aria-hidden /><span className="flex-1"><span className="block text-sm font-medium text-slate-800">{item.label}</span><span className="mt-1 block text-xs leading-5 text-slate-600">{item.description}</span></span>{active && <Check className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" aria-hidden />}</button>;
+          return <button key={item.value} type="button" aria-pressed={active} onClick={() => toggle(item.value)} className={`flex items-start gap-3 rounded-xl border p-4 text-left transition ${active ? 'border-blue-500 dark:border-blue-500 bg-blue-50 ring-1 ring-blue-100 dark:ring-blue-900' : 'border-blue-100 dark:border-slate-700 bg-white hover:border-blue-300 dark:hover:border-blue-700'}`}><item.icon className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" aria-hidden /><span className="flex-1"><span className="block text-sm font-medium text-slate-800">{item.label}</span><span className="mt-1 block text-xs leading-5 text-slate-600">{item.description}</span></span>{active && <Check className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" aria-hidden />}</button>;
         })}
       </div>
       <p className="text-xs text-slate-500">You can change these preferences later. This step is optional.</p>
@@ -919,7 +925,7 @@ function EmployerStepOrg() {
               onClick={() => setEmployer({ industry: ind.id })}
               className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
                 employer.industry === ind.id
-                  ? 'border-blue-600 bg-blue-50 font-medium ring-1 ring-blue-200'
+                  ? 'border-blue-600 bg-blue-50 font-medium ring-1 ring-blue-200 dark:ring-blue-800'
                   : 'border-border hover:border-blue-400'
               }`}
             >
@@ -955,7 +961,7 @@ function IntakeOption({
     <div
       className={`rounded-xl border p-4 transition-colors ${
         selected
-          ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200'
+          ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200 dark:ring-blue-800'
           : 'border-border'
       }`}
     >
@@ -1113,7 +1119,7 @@ function EmployerStepObjective() {
           onClick={() => setEmployer({ objective: o.id })}
           className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors ${
             employer.objective === o.id
-              ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200'
+              ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200 dark:ring-blue-800'
               : 'border-border hover:border-teal-400'
           }`}
         >
@@ -1149,7 +1155,7 @@ function EmployerStepParams() {
               onClick={() => setEmployer({ timelineMonths: m })}
               className={`rounded-lg border px-4 py-2 text-sm transition-colors ${
                 employer.timelineMonths === m
-                  ? 'border-blue-600 bg-blue-50 font-medium ring-1 ring-blue-200'
+                  ? 'border-blue-600 bg-blue-50 font-medium ring-1 ring-blue-200 dark:ring-blue-800'
                   : 'border-border hover:border-blue-400'
               }`}
             >
@@ -1170,7 +1176,7 @@ function EmployerStepParams() {
               onClick={() => setEmployer({ budgetPref: b })}
               className={`rounded-xl border p-4 text-left text-sm transition-colors ${
                 employer.budgetPref === b
-                  ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200'
+                  ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200 dark:ring-blue-800'
                   : 'border-border hover:border-teal-400'
               }`}
             >
@@ -1257,7 +1263,7 @@ function InstitutionStepOrg() {
               onClick={() => setInstitution({ field: f.id })}
               className={`rounded-lg border px-3 py-2.5 text-sm transition-colors ${
                 institution.field === f.id
-                  ? 'border-blue-600 bg-blue-50 font-medium ring-1 ring-blue-200'
+                  ? 'border-blue-600 bg-blue-50 font-medium ring-1 ring-blue-200 dark:ring-blue-800'
                   : 'border-border hover:border-blue-400'
               }`}
             >
@@ -1345,7 +1351,7 @@ function InstitutionStepFocus() {
           onClick={() => setInstitution({ focus: o.id })}
           className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors ${
             institution.focus === o.id
-                  ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200'
+                  ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200 dark:ring-blue-800'
               : 'border-border hover:border-teal-400'
           }`}
         >
@@ -1381,7 +1387,7 @@ function InstitutionStepAccess() {
               onClick={() => setLang(l)}
               className={`rounded-lg border px-4 py-2 text-sm transition-colors ${
                 lang === l
-                  ? 'border-blue-600 bg-blue-50 font-medium ring-1 ring-blue-200'
+                  ? 'border-blue-600 bg-blue-50 font-medium ring-1 ring-blue-200 dark:ring-blue-800'
                   : 'border-border hover:border-blue-400'
               }`}
             >
@@ -1423,7 +1429,7 @@ function StepPersona() {
             onClick={() => setProfile({ persona: p.id })}
             className={`rounded-xl border p-4 text-left transition-colors ${
               profile.persona === p.id
-                ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200'
+                ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-200 dark:ring-blue-800'
                 : 'border-border hover:border-teal-400'
             }`}
           >
@@ -1531,12 +1537,12 @@ function StepSkills() {
         ) : null}
         <ul className="space-y-2">
         {entries.map(([slug, level]) => (
-          <li key={slug} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-100 bg-white px-4 py-3 shadow-sm">
+          <li key={slug} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-100 dark:border-slate-700 bg-white px-4 py-3 shadow-sm">
             <span className="min-w-0 flex-1 text-sm font-medium text-slate-900">{SKILL_MAP[slug]?.name ?? slug}<span className="mt-0.5 block text-xs font-normal text-slate-500">{SKILL_MAP[slug]?.category ?? 'Skill'}</span></span>
             <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
               <span className="sr-only">{SKILL_MAP[slug]?.name ?? slug} proficiency</span>
               <Select value={String(level)} onValueChange={(value) => setSkillLevel(slug, Number(value))}>
-                <SelectTrigger className="h-11 w-44 rounded-xl border-blue-100 bg-white text-sm text-slate-900 shadow-sm hover:border-blue-200 focus:ring-2 focus:ring-blue-100"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-11 w-44 rounded-xl border-blue-100 dark:border-slate-700 bg-white text-sm text-slate-900 shadow-sm hover:border-blue-200 focus:ring-2 focus:ring-blue-100"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="0">0 · Remove</SelectItem>
                   <SelectItem value="1">1 · Beginner</SelectItem>
@@ -1562,13 +1568,13 @@ function StepSkills() {
         </div>
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
-          <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search skills or categories" aria-label="Search skills or categories" className="h-11 rounded-xl border-blue-100 bg-white pl-10 text-slate-900 placeholder:text-slate-400 focus-visible:ring-blue-200" />
+          <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search skills or categories" aria-label="Search skills or categories" className="h-11 rounded-xl border-blue-100 dark:border-slate-700 bg-white pl-10 text-slate-900 placeholder:text-slate-400 focus-visible:ring-blue-200" />
         </div>
         {results.length ? (
           <ul className="grid gap-3 sm:grid-cols-2">
             {results.map((skill) => (
               <li key={skill.slug}>
-                <button type="button" onClick={() => setSkillLevel(skill.slug, 1)} className="group flex min-h-[76px] w-full items-center justify-between gap-3 rounded-xl border border-blue-100 bg-white px-4 py-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:bg-blue-50/60 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+                <button type="button" onClick={() => setSkillLevel(skill.slug, 1)} className="group flex min-h-[76px] w-full items-center justify-between gap-3 rounded-xl border border-blue-100 dark:border-slate-700 bg-white px-4 py-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50/60 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                   <span className="min-w-0"><span className="block truncate text-sm font-medium text-slate-900">{skill.name}</span><span className="mt-1 block text-xs text-slate-500">{skill.category}</span></span>
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-700 transition group-hover:bg-blue-600 group-hover:text-white"><Plus className="h-4 w-4" aria-hidden /></span>
                 </button>

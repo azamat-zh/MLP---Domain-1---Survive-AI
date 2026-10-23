@@ -180,7 +180,7 @@ function OverviewTab({ matches }: { matches: ReturnType<typeof matchAll> }) {
 
   return (
     <div className="space-y-4">
-      <Card className="border-blue-100 bg-gradient-to-r from-white via-blue-50/70 to-indigo-50/70 shadow-sm">
+      <Card className="border-blue-100 dark:border-slate-700 bg-gradient-to-r from-white dark:from-slate-900 via-blue-50/70 to-indigo-50/70 shadow-sm">
         <CardContent className="grid gap-5 pt-6 md:grid-cols-[1fr_auto] md:items-center">
           <div>
             <div className="flex flex-wrap items-center gap-2"><Badge variant="outline" className="border-blue-200 bg-white text-blue-700">Your career snapshot</Badge>{profileDetails?.employmentStatus && <Badge variant="secondary">{profileDetails.employmentStatus.replace('-', ' ')}</Badge>}</div>

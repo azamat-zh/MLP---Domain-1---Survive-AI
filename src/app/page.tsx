@@ -73,8 +73,7 @@ function Footer() {
         </p>
         <p className="flex items-start gap-1.5">
           <Scale className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-          Aiversecity — Future-Ready Workforce · SDG 4 Quality Education · targets 4.3 · 4.4 · 8.2 · 8.5 ·
-          Human-in-command: AI supports career decisions, people make them.
+          Aiversecity — Future-Ready Workforce · Human-in-command: AI supports career decisions, people make them.
         </p>
       </div>
     </footer>

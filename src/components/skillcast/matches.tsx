@@ -53,6 +53,11 @@ export function MatchesTab({ matches }: { matches: RoleMatch[] }) {
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-4">
+      <h2 className="text-lg font-semibold">{t('match.title')}</h2>
+
+      {/* Guidance */}
+      <p className="text-sm text-muted-foreground">{t('match.guidance')}</p>
+
       {/* Fork switcher */}
       <div role="radiogroup" aria-label={t('match.title')} className="grid gap-3 sm:grid-cols-3">
         {FORKS.map((f) => (
@@ -64,8 +69,8 @@ export function MatchesTab({ matches }: { matches: RoleMatch[] }) {
             onClick={() => setFork(f.id)}
             className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-colors ${
               fork === f.id
-                ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-200'
-                : 'border-blue-100 bg-white hover:border-blue-300'
+                ? 'border-blue-500 dark:border-blue-500 bg-blue-50 ring-1 ring-blue-200 dark:ring-blue-800'
+                : 'border-blue-100 dark:border-slate-700 bg-white hover:border-blue-300 dark:hover:border-blue-700'
             }`}
           >
             <f.icon className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" aria-hidden />
@@ -77,7 +82,13 @@ export function MatchesTab({ matches }: { matches: RoleMatch[] }) {
         ))}
       </div>
 
-      <h2 className="text-lg font-semibold">{t('match.title')}</h2>
+      {forkMatches.length === 0 ? (
+        <Card>
+          <CardContent className="p-4 text-sm text-muted-foreground">
+            {t('match.empty')}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="flex w-full min-w-0 flex-col gap-4">
         {forkMatches.map((m) => <MatchCard key={m.roleSlug} match={m} />)}
@@ -134,7 +145,7 @@ function MatchCard({ match }: { match: RoleMatch }) {
   const factorLabels: Record<string, string> = { Skills: 'Skills', Interests: 'Interests', Experience: 'Experience', 'Work preferences': 'Work Preferences' };
 
   return (
-    <Card className={`w-full min-w-0 overflow-hidden rounded-2xl border bg-white shadow-sm ${isChosen ? 'border-blue-500 ring-1 ring-blue-200' : 'border-blue-100'}`}>
+    <Card className={`w-full min-w-0 overflow-hidden rounded-2xl border bg-white shadow-sm ${isChosen ? 'border-blue-500 dark:border-blue-500 ring-1 ring-blue-200 dark:ring-blue-800' : 'border-blue-100 dark:border-slate-700'}`}>
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -147,27 +158,32 @@ function MatchCard({ match }: { match: RoleMatch }) {
             </CardTitle>
             <CardDescription className="mt-2 max-w-3xl text-sm leading-relaxed">{role.tagline}</CardDescription>
           </div>
-          <div className="flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-[1.75rem] border border-blue-200 bg-blue-50 text-blue-800 shadow-sm sm:h-28 sm:w-28" role="img" aria-label={`${t('match.score')} ${match.score}%`}>
-            <span className="text-3xl font-bold leading-none tracking-tight sm:text-4xl">{match.score}%</span>
-            <span className="mt-2 text-sm font-medium tracking-wide">match</span>
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-[1.75rem] border border-blue-200 bg-blue-50 text-blue-800 shadow-sm sm:h-28 sm:w-28" role="img" aria-label={`${t('match.score')} ${match.score}%`}>
+              <span className="text-3xl font-bold leading-none tracking-tight sm:text-4xl">{match.score}%</span>
+              <span className="mt-2 text-sm font-medium tracking-wide">match</span>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => { setChosenRole(match.roleSlug); setDashTab('pathway'); }}>
+              Explore Roadmap
+            </Button>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <section aria-label="Current readiness" className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+        <section aria-label="Current readiness" className="rounded-xl border border-blue-100 dark:border-slate-700 bg-blue-50/70 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div><p className="text-sm font-semibold text-slate-900">Current Readiness</p><p className="text-xs text-slate-600">Skills needed for this role</p></div>
             <span className="text-lg font-bold tabular-nums text-blue-700">{match.skillReadiness}%</span>
           </div>
           <Progress value={match.skillReadiness} className="mt-2 h-2.5" aria-label={`Skill readiness ${match.skillReadiness}%`} />
           <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {match.factors.map((factor) => <div key={factor.label} className="rounded-lg border border-blue-100/80 bg-white/80 px-3 py-2 text-center"><p className="text-[11px] text-slate-500">{factorLabels[factor.label] ?? factor.label}</p><p className="text-sm font-semibold tabular-nums text-slate-800">{Math.round(factor.value * 100)}%</p></div>)}
+            {match.factors.map((factor) => <div key={factor.label} className="rounded-lg border border-blue-100 dark:border-slate-700/80 bg-white/80 px-3 py-2 text-center"><p className="text-[11px] text-slate-500">{factorLabels[factor.label] ?? factor.label}</p><p className="text-sm font-semibold tabular-nums text-slate-800">{Math.round(factor.value * 100)}%</p></div>)}
           </div>
         </section>
 
         <div className="grid gap-3 md:grid-cols-2">
-          <section className="rounded-xl border border-blue-100 p-4">
+          <section className="rounded-xl border border-blue-100 dark:border-slate-700 p-4">
             <h3 className="text-sm font-semibold text-slate-900">Matching Skills</h3>
             {currentSkills.length ? <ul className="mt-3 space-y-2">{currentSkills.map((item) => <li key={item.skill} className="flex items-center justify-between gap-3 rounded-lg bg-blue-50/70 px-3 py-2 text-sm"><span className="font-medium text-slate-800">{item.skillName}</span><span className="shrink-0 text-xs text-slate-600">{item.userLevel}/5 current · {item.requiredLevel} required</span></li>)}</ul> : <p className="mt-2 text-sm text-slate-600">No mapped role skills selected yet.</p>}
           </section>
@@ -177,23 +193,21 @@ function MatchCard({ match }: { match: RoleMatch }) {
           </section>
         </div>
 
-        <section className="rounded-xl border border-blue-100 p-4">
+        <section className="rounded-xl border border-blue-100 dark:border-slate-700 p-4">
           <h3 className="mb-3 text-sm font-semibold text-slate-900">Career Outlook</h3>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg bg-slate-50 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs font-semibold text-slate-700">Market Outlook</span><Badge variant="outline" className="border-blue-200 bg-white text-blue-700">{scenario === 'accelerated' ? 'Fast adoption' : 'Moderate adoption'}</Badge></div>
               <p className="mt-2 text-xl font-bold text-blue-700">{demand}<span className="text-sm font-medium text-slate-500">/100</span></p>
-              <p className="mt-1 text-[11px] text-slate-500">{t('common.estimate')} from existing SkillCast data; not a guaranteed forecast.</p>
             </div>
             <div className="rounded-lg bg-slate-50 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs font-semibold text-slate-700">AI Task Exposure</span><Badge variant="outline" className="border-indigo-200 bg-white text-indigo-700">{exposure}</Badge></div>
               <p className="mt-2 text-xl font-bold text-indigo-700">{Math.round(role.automationExposure * 100)}%</p>
-              <p className="mt-1 text-[11px] text-slate-500">Task exposure only; it is not a probability of job replacement.</p>
             </div>
           </div>
         </section>
 
-        <section className="rounded-xl border border-blue-100 p-4">
+        <section className="rounded-xl border border-blue-100 dark:border-slate-700 p-4">
           <div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-semibold text-slate-900">UN Sustainable Development Goals</h3>{role.sdgTags.map((goal) => <SdgBadge key={goal} goal={goal} size="md" />)}</div>
           <p className="mt-2 text-sm leading-relaxed text-slate-600">{role.sdgMechanism}</p>
         </section>
