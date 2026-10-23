@@ -81,15 +81,15 @@ export function useT() {
 
 // ─── Small shared UI atoms ─────────────────────────────────────────────────
 
-export function SdgBadge({ goal, size = 'sm' }: { goal: number; size?: 'sm' | 'md' }) {
+export function SdgBadge({ goal, size = 'sm', label }: { goal: number; size?: 'sm' | 'md'; label?: string }) {
   return (
     <span
       className={`inline-flex items-center rounded-md font-semibold text-white ${
         size === 'sm' ? 'h-5 w-5 justify-center text-[10px]' : 'h-6 min-w-6 px-1.5 justify-center text-xs'
       }`}
       style={{ backgroundColor: SDG_HEX[goal] ?? '#555' }}
-      title={`SDG ${goal}`}
-      aria-label={`Sustainable Development Goal ${goal}`}
+      title={label ?? `SDG ${goal}`}
+      aria-label={label ?? `Sustainable Development Goal ${goal}`}
     >
       {goal}
     </span>

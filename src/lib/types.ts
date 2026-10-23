@@ -161,6 +161,9 @@ export interface SkillSnapshot {
     company: string;
     url?: string;
     date: string;
+    /** Source-supplied metadata only; legacy date may be an ingestion fallback. */
+    sourceDate?: string;
+    sourceDateKind?: 'published' | 'updated';
     snippet: string;
   }>;
 }
