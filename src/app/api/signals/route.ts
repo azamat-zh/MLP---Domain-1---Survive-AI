@@ -5,6 +5,14 @@ import type { SignalsPayload } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
+// POST /api/signals forces an ingest past the 10-minute staleness window. Any
+// visitor hitting the endpoint could otherwise trigger unbounded external
+// fetches and DB growth, so the force path has an in-process cooldown and
+// old runs are pruned after each ingest.
+const FORCE_COOLDOWN_MS = 60_000;
+const RUN_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+let lastForcedAt = 0;
+
 const SEED_SOURCE = {
   name: 'Seeded baseline (demo snapshot)',
   url: 'https://www.weforum.org/publications/the-future-of-jobs-report-2025/',
@@ -123,10 +131,26 @@ async function writeChangelog(newRunId: string): Promise<void> {
   });
 }
 
+async function pruneOldRuns() {
+  const cutoff = new Date(Date.now() - RUN_RETENTION_MS);
+  try {
+    // SignalSnapshot cascade-deletes with its run.
+    await db.signalRun.deleteMany({ where: { createdAt: { lt: cutoff } } });
+  } catch (e) {
+    console.error('[api/signals] prune failed', e);
+  }
+}
+
 async function ensureFreshRun(force: boolean) {
   const latest = await db.signalRun.findFirst({ orderBy: { createdAt: 'desc' } });
   const stale = !latest || Date.now() - latest.createdAt.getTime() > 10 * 60 * 1000;
+  // Forced refreshes are throttled: a second force within the cooldown window
+  // serves the freshest run instead of re-ingesting (no DB write, no fetches).
+  if (force && latest && Date.now() - lastForcedAt < FORCE_COOLDOWN_MS) {
+    return latest.id;
+  }
   if (force || stale || !latest) {
+    lastForcedAt = Date.now();
     let runId: string;
     try {
       runId = await buildRun(true);
@@ -134,6 +158,7 @@ async function ensureFreshRun(force: boolean) {
       runId = await buildRun(false);
     }
     await writeChangelog(runId);
+    await pruneOldRuns();
     return runId;
   }
   return latest.id;

@@ -1,362 +1,288 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { ArrowLeft, Target } from 'lucide-react';
+import { useMemo, useState, type ReactNode } from 'react';
+import { Bot, Check, ClipboardCopy, Compass, Sparkles, Target } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { buildHaradaPlan } from '@/lib/harada';
-import type { HaradaTask } from '@/lib/harada';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ROLE_MAP } from '@/data/roles';
+import { COURSE_MAP } from '@/data/courses';
+import { haradaMatrix } from '@/lib/matching';
 import type { RoleMatch } from '@/lib/types';
 import { useSkillCast } from '@/lib/store';
-import { useSignals, useT } from './shared';
+import { LevelDots, MomentumPill, SdgBadge, useSignals, useT } from './shared';
 
-type TaskStatus = 'todo' | 'in_progress' | 'done';
-
-// The middle cell is reserved for the goal or selected area.
-const POSITIONS = [0, 1, 2, 3, -1, 4, 5, 6, 7];
+// ─── Harada tab: Open 9 Boxes — a self-management sheet the user owns ───────
+// Harada fills the follow-through blind spot: the app stops predicting and
+// hands the user a sheet they own. Every box is pre-filled with cited
+// deterministic data (public match formula, gap list, course registry, time
+// budget, completed courses); the human keeps ownership — the goal box is
+// chosen by the user, not the AI. The LLM only narrates the plan on request
+// (call site 2) and always falls back to a deterministic template.
 
 export function HaradaTab({ matches }: { matches: RoleMatch[] }) {
   const t = useT();
-  const {
-    chosenRole,
-    profile,
-    haradaTaskStatus,
-    setHaradaTaskStatus,
-    setProfile,
-    setDashTab,
-  } = useSkillCast();
-
+  const { chosenRole, profile, completedCourses, lang, scenario } = useSkillCast();
   const { momentumMap } = useSignals();
-  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [plan, setPlan] = useState<string | null>(null);
+  const [planFallback, setPlanFallback] = useState(false);
+  const [planLoading, setPlanLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const plan = useMemo(
-    () =>
-      chosenRole
-        ? buildHaradaPlan(profile, chosenRole, momentumMap)
-        : null,
-    [chosenRole, profile, momentumMap],
+  const match = useMemo(() => matches.find((m) => m.roleSlug === chosenRole) ?? null, [matches, chosenRole]);
+  const role = chosenRole ? ROLE_MAP[chosenRole] : null;
+  const matrix = useMemo(
+    () => (role ? haradaMatrix(profile, role.slug).map((r) => ({ ...r, momentum: momentumMap[r.skill] ?? 0 })) : []),
+    [role, profile, momentumMap],
   );
 
-  const statuses = haradaTaskStatus ?? {};
-  const tasks = plan?.areas.flatMap((area) => area.tasks) ?? [];
-
-  const statusOf = (task: HaradaTask): TaskStatus =>
-    statuses[task.id] ?? 'todo';
-
-  const summarize = (items: HaradaTask[]) => {
-    const totalHours = items.reduce((sum, task) => sum + task.hours, 0);
-    const doneHours = items.reduce(
-      (sum, task) => sum + (statusOf(task) === 'done' ? task.hours : 0),
-      0,
-    );
-
-    return {
-      totalHours,
-      remainingHours: totalHours - doneHours,
-      percent: totalHours ? Math.round((doneHours / totalHours) * 100) : 0,
-      doneCount: items.filter((task) => statusOf(task) === 'done').length,
-    };
-  };
-
-  const summary = summarize(tasks);
-  const weeklyHours =
-    Number.isFinite(profile.budget) && profile.budget > 0
-      ? profile.budget
-      : 5;
-  const weeks = Math.ceil(summary.remainingHours / weeklyHours);
-
-  const area =
-    plan?.areas.find((item) => item.id === selectedAreaId) ?? null;
-  const selectedTask =
-    area?.tasks.find((task) => task.id === selectedTaskId) ?? null;
-
-  if (
-    !plan ||
-    !matches.some((match) => match.roleSlug === plan.roleSlug)
-  ) {
+  if (!role || !match) {
     return (
-      <Card>
-        <CardContent className="space-y-4 py-12 text-center">
-          <p className="text-muted-foreground">{t('sdg.notchosen')}</p>
-          <Button onClick={() => setDashTab('matches')}>
-            {t('tab.matches')}
-          </Button>
-        </CardContent>
+      <Card className="text-center">
+        <CardContent className="py-12 text-muted-foreground">{t('sdg.notchosen')}</CardContent>
       </Card>
     );
   }
 
-  const tileColor = (percent: number, started = false) => {
-    if (percent === 100) {
-      return 'border-emerald-500 bg-emerald-500/10';
+  const gaps = [...match.gap].sort((a, b) => a.weight - b.weight).slice(0, 4);
+  const gapSkills = gaps.map((g) => g.skill);
+  const planCourses = Object.values(COURSE_MAP)
+    .filter((c) => c.skills.some((s) => gapSkills.includes(s)))
+    .slice(0, 3);
+  const minutesPerDay = Math.max(10, Math.round((profile.budget * 60) / 7));
+  const deadlineDate = new Date(Date.now() + match.pathwayWeeks * 7 * 24 * 3600 * 1000).toLocaleDateString();
+
+  const askAI = async () => {
+    setPlanLoading(true);
+    try {
+      const res = await fetch('/api/coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roleSlug: role.slug,
+          mode: 'harada',
+          score: match.score,
+          factors: match.factors.map((f) => ({ label: f.label, value: f.value })),
+          gap: match.gap.slice(0, 5).map((g) => ({
+            skill: g.skill,
+            userLevel: g.userLevel,
+            minLevel: g.minLevel,
+            momentum: momentumMap[g.skill] ?? g.momentum,
+          })),
+          scenario,
+          lang,
+          pathwayWeeks: match.pathwayWeeks,
+          budget: profile.budget,
+          courses: planCourses.map((c) => `${c.title} (${c.provider})`),
+        }),
+      });
+      const json = (await res.json()) as { narration?: string; fallback?: boolean };
+      setPlan(json.narration ?? null);
+      setPlanFallback(Boolean(json.fallback));
+    } catch {
+      setPlan(null);
+      setPlanFallback(true);
+    } finally {
+      setPlanLoading(false);
     }
-    if (percent > 0 || started) {
-      return 'border-amber-500 bg-amber-500/10';
-    }
-    return 'border-border bg-card hover:border-teal-500';
   };
 
-  const statusLabel = (status: TaskStatus) => {
-    if (status === 'done') return 'Completed';
-    if (status === 'in_progress') return 'In progress';
-    return 'Not started';
+  const shareText = [
+    `SkillCast plan — ${role.title}`,
+    `Why: ${role.tagline}`,
+    `Deadline: ~${match.pathwayWeeks} weeks at ${profile.budget} hrs/week (by ${deadlineDate})`,
+    `Priority gaps: ${gaps.map((g) => `${g.skillName} ${g.userLevel}→${g.minLevel}`).join(', ') || 'none'}`,
+    `Courses: ${planCourses.map((c) => `${c.title} (${c.provider})`).join(', ') || '—'}`,
+    `Progress: ${completedCourses.length}/${planCourses.length} courses done`,
+    `SDG: ${role.sdgTags.join(', ')}`,
+  ].join('\n');
+
+  const copyPlan = async () => {
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 3000);
+    } catch {
+      // clipboard unavailable (e.g. non-secure context) — nothing to fix here
+    }
   };
+
+  const cell = (title: string, desc: string, children: ReactNode) => (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
+      <div className="mt-2">{children}</div>
+      <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">{desc}</p>
+    </div>
+  );
+
+  const vision = t('harada.vision.text', {
+    top: matrix[0]?.name ?? '—',
+    n: match.gap.length,
+    w: match.pathwayWeeks,
+    b: profile.budget,
+    role: role.title,
+  });
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-xl font-semibold">My Harada career map</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          One career goal · Eight development areas · 64 actions
-        </p>
-      </div>
-
-      {profile.objective && (
-        <p className="rounded-xl border bg-muted/30 p-4 text-sm">
-          Your objective: {profile.objective}
-        </p>
-      )}
-
-      <Card>
-        <CardContent className="space-y-4 pt-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="font-medium">{plan.title}</p>
-              <p className="text-sm text-muted-foreground" aria-live="polite">
-                {summary.doneCount}/{tasks.length} actions completed
-                {' · '}
-                {summary.remainingHours} estimated hours remaining
-              </p>
-            </div>
-
-            <label className="flex items-center gap-2 text-sm">
-              Hours per week
-              <select
-                value={weeklyHours}
-                onChange={(event) =>
-                  setProfile({ budget: Number(event.target.value) })
-                }
-                className="rounded-md border bg-background px-2 py-1.5"
-              >
-                {[...new Set([1, 2, 3, 5, 8, 10, 15, 20, weeklyHours])]
-                  .sort((a, b) => a - b)
-                  .map((hours) => (
-                    <option key={hours} value={hours}>
-                      {hours}
-                    </option>
-                  ))}
-              </select>
-            </label>
+    <div className="space-y-4">
+      {/* Open 9 Boxes — the self-management sheet */}
+      <div className="grid gap-3 md:grid-cols-3">
+        {cell(t('harada.box.goal'), t('harada.goal.d'), (
+          <div>
+            <p className="font-semibold leading-snug">{role.title}</p>
+            <Badge variant="outline" className="mt-1.5 text-[10px] text-muted-foreground">
+              <Target className="mr-1 h-3 w-3" aria-hidden /> {t('harada.chosen')}
+            </Badge>
           </div>
-
-          <div className="flex items-center gap-3">
-            <Progress
-              value={summary.percent}
-              className="h-2 flex-1"
-              aria-label="Harada learning progress"
-            />
-            <span className="text-sm tabular-nums">
-              {summary.percent}%
-            </span>
-          </div>
-
-          <p className="text-sm" aria-live="polite">
-            {weeks === 0
-              ? 'All planned actions are completed.'
-              : `Estimated remaining learning time: about ${weeks} weeks.`}
+        ))}
+        {cell(t('harada.box.why'), t('harada.why.d'), <p className="text-sm leading-snug">{role.tagline}</p>)}
+        {cell(t('harada.box.deadline'), t('harada.deadline.d', { w: match.pathwayWeeks, b: profile.budget }), (
+          <p className="text-sm font-medium">
+            ~{match.pathwayWeeks} {t('harada.weeks')} → {deadlineDate}
           </p>
-
-          <p className="text-xs text-muted-foreground">
-            Preliminary action estimates, assuming a steady weekly pace.
-            Full course durations are not included. Completion is
-            self-reported and does not certify proficiency or guarantee a job.
-          </p>
-        </CardContent>
-      </Card>
-
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="font-medium">
-          {area ? area.title : 'Choose a development area'}
-        </h3>
-
-        {area && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSelectedAreaId(null);
-              setSelectedTaskId(null);
-            }}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to goal
-          </Button>
-        )}
-      </div>
-
-      <div className="overflow-x-auto pb-2">
-        <div className="grid min-w-[510px] grid-cols-3 gap-3">
-          {POSITIONS.map((index, position) => {
-            if (index === -1) {
-              return (
-                <div
-                  key="center"
-                  className="flex min-h-36 flex-col items-center justify-center rounded-xl border-2 border-teal-500 bg-teal-500/10 p-4 text-center"
-                >
-                  <Target
-                    className="mb-2 h-6 w-6 text-teal-600 dark:text-teal-400"
-                    aria-hidden
-                  />
-                  <span className="mb-1 text-xs text-muted-foreground">
-                    {area ? 'Development area' : 'Career goal'}
-                  </span>
-                  <p className="font-semibold">
-                    {area?.title ?? plan.title}
-                  </p>
-                </div>
-              );
-            }
-
-            if (area) {
-              const task = area.tasks[index];
-              const status = statusOf(task);
-
-              return (
-                <button
-                  key={task.id}
-                  type="button"
-                  onClick={() => setSelectedTaskId(task.id)}
-                  aria-pressed={selectedTaskId === task.id}
-                  className={`min-h-36 rounded-xl border p-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500 ${
-                    tileColor(
-                      status === 'done' ? 100 : 0,
-                      status === 'in_progress',
-                    )
-                  } ${
-                    selectedTaskId === task.id
-                      ? 'ring-2 ring-teal-500'
-                      : ''
-                  }`}
-                >
-                  <span className="text-xs text-muted-foreground">
-                    Action {index + 1}
-                  </span>
-                  <p className="my-2 text-sm font-semibold">{task.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {task.hours}h · {statusLabel(status)}
-                  </p>
-                </button>
-              );
-            }
-
-            const item = plan.areas[index];
-            const progress = summarize(item.tasks);
-            const started = item.tasks.some(
-              (task) => statusOf(task) === 'in_progress',
-            );
-
-            return (
-              <button
-                key={`${position}:${item.id}`}
-                type="button"
-                onClick={() => {
-                  setSelectedAreaId(item.id);
-                  setSelectedTaskId(null);
-                }}
-                className={`min-h-36 rounded-xl border p-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500 ${
-                  tileColor(progress.percent, started)
-                }`}
-              >
-                <span className="text-xs text-muted-foreground">
-                  Area {index + 1}
+        ))}
+        {cell(t('harada.box.situation'), t('harada.situation.d'), (
+          <ul className="space-y-1.5">
+            {gaps.map((g) => (
+              <li key={g.skill} className="flex items-center justify-between gap-2 text-sm">
+                <span className="truncate">{g.skillName}</span>
+                <span className="flex shrink-0 items-center gap-2">
+                  <LevelDots level={g.userLevel} />
+                  <MomentumPill momentum={momentumMap[g.skill] ?? g.momentum} />
                 </span>
-                <p className="my-2 text-sm font-semibold">{item.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {progress.doneCount}/8 actions · {progress.percent}%
-                </p>
-                {item.alreadyMeetsRequirements && (
-                  <p className="mt-2 text-xs text-emerald-700 dark:text-emerald-400">
-                    Profile meets the required level · Extension activities
-                  </p>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {area && !selectedTask && (
-        <p className="text-sm text-muted-foreground">
-          Select an action to read the instructions and update its status.
-        </p>
-      )}
-
-      {selectedTask && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              {selectedTask.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              {selectedTask.description}
-            </p>
-            <p className="text-sm">
-              Estimated effort: {selectedTask.hours} hours
-            </p>
-
-            <label className="flex flex-wrap items-center gap-3 text-sm">
-              Status
-              <select
-                value={statusOf(selectedTask)}
-                onChange={(event) =>
-                  setHaradaTaskStatus(
-                    selectedTask.id,
-                    event.target.value as TaskStatus,
-                  )
-                }
-                className="rounded-md border bg-background px-3 py-2"
-              >
-                <option value="todo">Not started</option>
-                <option value="in_progress">In progress</option>
-                <option value="done">Completed</option>
-              </select>
-            </label>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            Potential SDG contribution
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex flex-wrap gap-2">
-            {plan.sdgTags.map((goal) => (
-              <span
-                key={goal}
-                className="rounded-full border px-3 py-1 text-xs font-medium"
-              >
-                SDG {goal}
-              </span>
+              </li>
+            ))}
+            {gaps.length === 0 && <li className="text-sm text-muted-foreground">No gaps — strong fit.</li>}
+          </ul>
+        ))}
+        {cell(t('harada.box.plan'), t('harada.plan.d'), (
+          <ul className="space-y-1 text-sm">
+            {planCourses.map((c) => (
+              <li key={c.slug} className="truncate">
+                {c.title} <span className="text-muted-foreground">({c.provider})</span>
+              </li>
+            ))}
+            {planCourses.length === 0 && <li className="text-muted-foreground">—</li>}
+          </ul>
+        ))}
+        {cell(t('harada.box.routine'), t('harada.routine.d', { m: minutesPerDay }), (
+          <p className="text-sm font-medium">
+            ~{minutesPerDay} {t('harada.min')} / {t('harada.day')} · {profile.budget} {t('harada.hrs')}
+          </p>
+        ))}
+        {cell(t('harada.box.measure'), t('harada.measure.d', { done: completedCourses.length, total: Math.max(1, planCourses.length) }), (
+          <p className="text-sm font-medium">
+            {completedCourses.length} / {planCourses.length} {t('harada.courses')}
+          </p>
+        ))}
+        {cell(t('harada.box.share'), t('harada.share.d'), (
+          <Button size="sm" variant="outline" onClick={() => void copyPlan()} className="gap-1.5">
+            {copied ? <Check className="h-3.5 w-3.5" aria-hidden /> : <ClipboardCopy className="h-3.5 w-3.5" aria-hidden />}
+            {copied ? t('harada.share.copied') : t('harada.share.btn')}
+          </Button>
+        ))}
+        {cell(t('harada.box.sdg'), t('harada.sdg.d'), (
+          <div className="flex flex-wrap gap-1.5">
+            {role.sdgTags.map((g) => (
+              <SdgBadge key={g} goal={g} size="md" />
             ))}
           </div>
-          <p className="text-sm text-muted-foreground">
-            {plan.sdgExplanation}
+        ))}
+      </div>
+
+      {/* AI plan narration (call site 2 — never invents facts) */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="outline" onClick={() => void askAI()} disabled={planLoading} className="gap-2">
+          <Bot className="h-4 w-4" aria-hidden />
+          {planLoading ? '…' : t('harada.ai.btn')}
+        </Button>
+      </div>
+      {plan && (
+        <div className="rounded-lg border border-violet-200 bg-violet-50/60 p-3 text-sm dark:border-violet-900 dark:bg-violet-950/30">
+          <p className="flex items-start gap-2">
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+            <span>{plan}</span>
           </p>
-          <p className="text-xs text-muted-foreground">
-            These links describe the target role. Completing learning
-            activities alone does not demonstrate real-world SDG impact.
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            {planFallback ? t('match.coach.fallback') : t('match.coach.disclosure')}
+          </p>
+        </div>
+      )}
+
+      {/* Objective + vision */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Target className="h-5 w-5 text-teal-600 dark:text-teal-400" aria-hidden />
+              {t('harada.objective')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="rounded-lg bg-muted/50 p-3 text-sm italic">“{profile.objective || '—'}”</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Compass className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
+              {t('harada.vision')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">{vision}</p>
+            <Badge variant="outline" className="mt-2 text-[11px] text-muted-foreground">
+              {t('harada.method')}
+            </Badge>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Skill map detail */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">{t('harada.title')}</CardTitle>
+          <CardDescription>{t('harada.desc', { role: role.title })}</CardDescription>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-sm">
+            <thead>
+              <tr className="border-b text-left text-xs text-muted-foreground">
+                <th className="pb-2 font-medium">{t('common.level')}</th>
+                <th className="pb-2 font-medium">{t('harada.current')}</th>
+                <th className="pb-2 font-medium">{t('harada.required')}</th>
+                <th className="pb-2 font-medium">{t('demand.momentum')}</th>
+                <th className="pb-2 font-medium">Gap</th>
+              </tr>
+            </thead>
+            <tbody>
+              {matrix.map((row) => {
+                const gap = row.required - row.current;
+                return (
+                  <tr key={row.skill} className="border-b last:border-0">
+                    <td className="py-2.5 pr-3">
+                      <span className="font-medium">{row.name}</span>
+                      <span className="block text-xs text-muted-foreground">{row.category}</span>
+                    </td>
+                    <td className="py-2.5 pr-3"><LevelDots level={row.current} /></td>
+                    <td className="py-2.5 pr-3"><LevelDots level={row.required} highlight={row.required} /></td>
+                    <td className="py-2.5 pr-3"><MomentumPill momentum={row.momentum} /></td>
+                    <td className="py-2.5">
+                      {gap <= 0 ? (
+                        <Badge className="bg-emerald-600 text-white">✓</Badge>
+                      ) : gap >= 2 ? (
+                        <Badge className="bg-rose-600 text-white">+{gap}</Badge>
+                      ) : (
+                        <Badge className="bg-amber-500 text-white">+{gap}</Badge>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <p className="mt-3 text-xs text-muted-foreground">
+            {t('pw.progress')}: {completedCourses.length} {t('pw.done').toLowerCase()} · {t('common.estimates')}
           </p>
         </CardContent>
       </Card>

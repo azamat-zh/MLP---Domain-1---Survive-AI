@@ -164,7 +164,7 @@ export function matchAll(
 export function haradaMatrix(
   profile: Profile,
   roleSlug: string,
-): Array<{ skill: string; name: string; current: number; required: number; category: string; momentum: number }> {
+): Array<{ skill: string; name: string; current: number; required: number; category: string }> {
   const role = ROLE_MAP[roleSlug];
   if (!role) return [];
   return role.skills
@@ -174,7 +174,6 @@ export function haradaMatrix(
       current: profile.skills?.[req.skill] ?? 0,
       required: req.minLevel,
       category: SKILL_MAP[req.skill]?.category ?? '',
-      momentum: 0,
     }))
     .sort((a, b) => (b.required - b.current) - (a.required - a.current));
 }

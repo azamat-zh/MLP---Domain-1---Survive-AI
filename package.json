@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
-    "start": "NODE_ENV=production bun .next/standalone/server.js",
+    "build": "next build && node -e \"require('node:fs').cpSync('.next/static','.next/standalone/.next/static',{recursive:true}); require('node:fs').cpSync('public','.next/standalone/public',{recursive:true})\"",
+    "start": "NODE_ENV=production HOSTNAME=0.0.0.0 bun .next/standalone/server.js",
     "lint": "eslint .",
     "setup:runpod": "bun scripts/setup-runpod.mjs",
     "db:push": "prisma db push --accept-data-loss",
@@ -77,7 +77,6 @@
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
-    "z-ai-web-dev-sdk": "^0.0.18",
     "zod": "^4.0.2",
     "zustand": "^5.0.6"
   },

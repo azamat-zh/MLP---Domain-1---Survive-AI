@@ -87,11 +87,11 @@ function StepUserType() {
 // ─── Shared onboarding shell (progress + nav) ──────────────────────────────
 
 function OnboardingShell({
-  step, total, title, desc, icon: Icon, onBack, onNext, nextDisabled, children, finish, privacyNote,
+  step, total, title, desc, icon: Icon, onBack, onNext, nextDisabled, children, finish, privacyNote, hideNext,
 }: {
   step: number; total: number; title: string; desc?: string; icon: typeof User;
   onBack: () => void; onNext: () => void; nextDisabled: boolean; children: React.ReactNode;
-  finish?: () => void; privacyNote?: boolean;
+  finish?: () => void; privacyNote?: boolean; hideNext?: boolean;
 }) {
   const t = useT();
   return (
@@ -118,13 +118,15 @@ function OnboardingShell({
           <ArrowLeft className="mr-1 h-4 w-4" aria-hidden /> {t('common.back')}
         </Button>
         {step < total || !finish ? (
-          <Button
-            onClick={onNext}
-            disabled={nextDisabled}
-            className="gap-1 bg-teal-700 text-white hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500"
-          >
-            {t('common.next')} <ArrowRight className="h-4 w-4" aria-hidden />
-          </Button>
+          hideNext ? null : (
+            <Button
+              onClick={onNext}
+              disabled={nextDisabled}
+              className="gap-1 bg-teal-700 text-white hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500"
+            >
+              {t('common.next')} <ArrowRight className="h-4 w-4" aria-hidden />
+            </Button>
+          )
         ) : (
           <Button onClick={finish} className="gap-2 bg-teal-700 text-white hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500">
             <Rocket className="h-4 w-4" aria-hidden /> {t('onb.finish')}
@@ -188,6 +190,7 @@ function IndividualOnboarding() {
       nextDisabled={!canNext}
       finish={finish}
       privacyNote={step === 3}
+      hideNext={step === 3}
     >
       {step === 1 && <StepPersona />}
       {step === 2 && <StepInterests />}

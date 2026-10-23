@@ -34,6 +34,10 @@ yarn-error.log*
 .env*
 !.env.example
 
+# local run state
+db/custom.db
+db/custom.db-*
+
 # vercel
 .vercel
 
