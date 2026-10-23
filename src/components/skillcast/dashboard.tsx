@@ -59,33 +59,6 @@ export function Dashboard() {
           <h1 className="text-2xl font-bold tracking-tight">{t('dash.hello')}</h1>
           <p className="text-sm text-muted-foreground">{t('scenario.note')}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground">{t('dash.scenario')}:</span>
-          <div className="inline-flex rounded-lg border border-border p-0.5" role="radiogroup" aria-label={t('dash.scenario')}>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={scenario === 'moderate'}
-              onClick={() => setScenario('moderate')}
-              className={`rounded-md px-3 py-1 text-sm transition-colors ${
-                scenario === 'moderate' ? 'bg-foreground text-background font-medium' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {t('scenario.moderate')}
-            </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={scenario === 'accelerated'}
-              onClick={() => setScenario('accelerated')}
-              className={`rounded-md px-3 py-1 text-sm transition-colors ${
-                scenario === 'accelerated' ? 'bg-amber-600 dark:bg-amber-500 text-white font-medium' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {t('scenario.accelerated')}
-            </button>
-          </div>
-        </div>
       </div>
 
       <Tabs value={dashTab} onValueChange={setDashTab} className="mt-4">
@@ -93,8 +66,7 @@ export function Dashboard() {
           <TabsTrigger value="overview" className="gap-1.5"><Activity className="h-4 w-4" aria-hidden />{t('tab.overview')}</TabsTrigger>
           <TabsTrigger value="matches" className="gap-1.5">{t('tab.matches')}</TabsTrigger>
           <TabsTrigger value="radar" className="gap-1.5"><RadarIcon className="h-4 w-4" aria-hidden />Future Skills Radar</TabsTrigger>
-          <TabsTrigger value="pathway" className="gap-1.5">{t('tab.pathway')}</TabsTrigger>
-          <TabsTrigger value="harada" className="gap-1.5">{t('tab.harada')}</TabsTrigger>
+          <TabsTrigger value="harada" className="gap-1.5">Harada Method</TabsTrigger>
           <TabsTrigger value="progress" className="gap-1.5"><ListChecks className="h-4 w-4" aria-hidden />Progress</TabsTrigger>
           <TabsTrigger value="sdg" className="gap-1.5">{t('tab.sdg')}</TabsTrigger>
           <TabsTrigger value="demand" className="gap-1.5">{t('tab.demand')}</TabsTrigger>
@@ -108,9 +80,6 @@ export function Dashboard() {
         </TabsContent>
         <TabsContent value="radar" className="mt-4">
           <FutureRadarStep details={profile.extended ?? {}} onScenario={setScenario} />
-        </TabsContent>
-        <TabsContent value="pathway" className="mt-4">
-          <PathwayTab matches={matches} />
         </TabsContent>
         <TabsContent value="harada" className="mt-4">
           <HaradaTab matches={matches} />
@@ -190,7 +159,7 @@ function OverviewTab({ matches }: { matches: ReturnType<typeof matchAll> }) {
             {leadingRole && <p className="mt-1 text-sm text-slate-600">AI task exposure: {leadingExposure} · this describes task change, not a job replacement probability.</p>}
             <p className="mt-1 text-sm text-slate-600">Learning: {completedCourses.length} completed course{completedCourses.length === 1 ? '' : 's'} · Next: {nextCourse?.title ?? 'review your pathway'}</p>
           </div>
-          <div className="flex flex-wrap gap-2"><Button variant="outline" className="border-blue-200 dark:border-slate-600 text-blue-700 dark:text-slate-200" onClick={() => setDashTab('radar')}>Explore your radar</Button><Button variant="outline" className="border-blue-200 dark:border-slate-600 text-blue-700 dark:text-slate-200" onClick={() => setDashTab('pathway')}>Open pathway</Button><Button variant="outline" className="border-blue-200 dark:border-slate-600 text-blue-700 dark:text-slate-200" onClick={() => setDashTab('progress')}>View next steps</Button></div>
+          <div className="flex flex-wrap gap-2"><Button variant="outline" className="border-blue-200 dark:border-slate-600 text-blue-700 dark:text-slate-200" onClick={() => setDashTab('radar')}>Explore your radar</Button><Button variant="outline" className="border-blue-200 dark:border-slate-600 text-blue-700 dark:text-slate-200" onClick={() => setDashTab('harada')}>Open pathway</Button><Button variant="outline" className="border-blue-200 dark:border-slate-600 text-blue-700 dark:text-slate-200" onClick={() => setDashTab('progress')}>View next steps</Button></div>
         </CardContent>
       </Card>
 
