@@ -51,6 +51,10 @@ export function MatchesTab({ matches }: { matches: RoleMatch[] }) {
     [matches, fork],
   );
 
+console.log('All matches:', matches);
+console.log('Selected fork:', fork);
+console.log('Filtered matches:', forkMatches);
+
   return (
     <div className="flex w-full min-w-0 flex-col gap-4">
       {/* Fork switcher */}

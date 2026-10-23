@@ -195,13 +195,85 @@ export function matchRole(
   };
 }
 
+/**
+ * Calculate market momentum for a role based on
+ * the weighted demand for its required skills.
+ * Returns a value between 0 and 100.
+ */
+export function roleMarketMomentum(
+  roleSlug: string,
+  momentum: Record<string, number> = {},
+): number {
+  const role = ROLE_MAP[roleSlug];
+  if (!role) return 0;
+
+  const totalWeight = role.skills.reduce(
+    (sum, skill) => sum + skill.weight,
+    0
+  );
+
+  if (totalWeight === 0) return 50;
+
+  const weightedMomentum = role.skills.reduce((sum, skill) => {
+    const rawMomentum =
+      momentum[skill.skill] ??
+      SKILL_MAP[skill.skill]?.seedMomentum ??
+      50;
+
+    const value = Number.isFinite(rawMomentum)
+      ? Math.max(0, Math.min(100, rawMomentum))
+      : 50;
+
+    return sum + skill.weight * value;
+  }, 0);
+
+  return weightedMomentum / totalWeight;
+}
+
+/**
+ * Dynamic ranking:
+ * 80% profile match + 20% market momentum.
+ *
+ * Career strategy adds a small ranking preference.
+ * It does not change the original compatibility score.
+ */
 export function matchAll(
   profile: Profile,
   momentum: Record<string, number> = {},
 ): RoleMatch[] {
-  return ROLES.map((r) => matchRole(profile, r.slug, momentum))
-    .filter((m): m is RoleMatch => m !== null)
-    .sort((a, b) => strategyPriority(profile, a.roleSlug) - strategyPriority(profile, b.roleSlug) || b.score - a.score);
+  const PROFILE_WEIGHT = 0.8;
+  const MARKET_WEIGHT = 0.2;
+  const STRATEGY_BONUS = 5;
+
+  const rankingScore = (match: RoleMatch): number => {
+    const marketScore = roleMarketMomentum(
+      match.roleSlug,
+      momentum
+    );
+
+    const priority = strategyPriority(
+      profile,
+      match.roleSlug
+    );
+
+    const strategyAdjustment =
+      Math.max(0, 3 - priority) * STRATEGY_BONUS;
+
+    return (
+      PROFILE_WEIGHT * match.score +
+      MARKET_WEIGHT * marketScore +
+      strategyAdjustment
+    );
+  };
+
+  return ROLES
+    .map((role) => matchRole(profile, role.slug, momentum))
+    .filter((match): match is RoleMatch => match !== null)
+    .sort((a, b) => {
+      const difference = rankingScore(b) - rankingScore(a);
+
+      return difference || a.roleSlug.localeCompare(b.roleSlug);
+    });
 }
 
 // ─── Harada-style skill matrix ─────────────────────────────────────────────
