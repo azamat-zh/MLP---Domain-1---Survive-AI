@@ -102,14 +102,38 @@ async function writeChangelog(newRunId: string): Promise<void> {
   if (prevRun) {
     const prevMap = new Map(prevRun.snapshots.map((s) => [s.skillSlug, s.momentum]));
     for (const s of newRun.snapshots) {
-      const prev = prevMap.get(s.skillSlug);
-      if (prev === undefined) continue;
-      movers.push({ skill: s.skillSlug, delta: s.momentum - prev, momentum: s.momentum });
+
+
+const prev = prevMap.get(s.skillSlug);
+
+if (prev == null || s.momentum == null) {
+  continue;
+}
+
+const previousMomentum = Number(prev);
+const currentMomentum = Number(s.momentum);
+
+if (
+  !Number.isFinite(previousMomentum) ||
+  !Number.isFinite(currentMomentum)
+) {
+  continue;
+}
+
+movers.push({
+  skill: s.skillSlug,
+  delta: currentMomentum - previousMomentum,
+  momentum: currentMomentum,
+});
+
+
     }
   }
   movers.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 
-  const top = movers.slice(0, 4).filter((m) => Math.abs(m.delta) >= 2);
+  const top = movers
+  .filter((m) => Math.abs(m.delta) >= 2)
+  .slice(0, 10);
   const version = `v${newRun.createdAt.toISOString().slice(0, 10)} · ${newRun.createdAt
     .toTimeString()
     .slice(0, 5)}`;
