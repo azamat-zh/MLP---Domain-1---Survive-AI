@@ -16,7 +16,12 @@ export interface ScrubReport {
 const MASK = '[REDACTED]';
 
 function maskLine(text: string, label: string, items: Array<{ kind: string; preview: string }>) {
-  items.push({ kind: label, preview: text.length > 24 ? text.slice(0, 24) + '…' : text });
+  // Label-based rules (e.g. "Religion: Islam") match text that begins with the
+  // label itself; strip that prefix so the badge does not render as
+  // "Religion: Religion: Islam".
+  const clean = text.replace(new RegExp(`^${escapeRe(label)}(\\s*[:\\-]\\s*|\\s+)`, 'i'), '');
+  const preview = clean || text;
+  items.push({ kind: label, preview: preview.length > 24 ? preview.slice(0, 24) + '…' : preview });
   return MASK;
 }
 

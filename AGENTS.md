@@ -26,9 +26,9 @@ flowchart LR
 
 Data flow details:
 - **Profile**: onboarding scrubs the CV in-browser (`scrubCV`); the de-identified text is POSTed to `/api/extract-cv` (self-hosted Qwen on RunPod, strict JSON extraction) with deterministic `extractSkills` as the fallback — raw CV never leaves the browser, only skill levels persist. Zustand `persist` under key `skillcast-poc`; `partialize` excludes transient `view`/`dashTab`.
-- **Signals**: `SignalsProvider` (`src/components/skillcast/shared.tsx`) fetches `/api/signals` once on mount; `refresh()` POSTs. The route ingests live postings (15 s per-source timeouts, per-source try/catch), persists a `SignalRun` + `SignalSnapshot`s, diffs against the previous run to write a `ChangelogEntry` (movers `|Δ| ≥ 2`), guards against re-ingest within 10 minutes, and falls back to `seedSnapshots()` if all live sources fail. **This is the only code path touching Prisma.**
+- **Signals**: `SignalsProvider` (`src/components/skillcast/shared.tsx`) fetches `/api/signals` once on mount; `refresh()` POSTs. The route ingests live postings from four free sources — Remotive, Arbeitnow, Greenhouse boards, Ashby boards (`src/lib/momentum.ts`, 15 s per-source timeouts, per-source try/catch), persists a `SignalRun` + `SignalSnapshot`s, diffs against the previous run to write a `ChangelogEntry` (movers `|Δ| ≥ 2`), guards against re-ingest within 10 minutes, and falls back to `seedSnapshots()` if all live sources fail. **This is the only code path touching Prisma.**
 - **Matching** runs client-side with no AI: `matchAll(profile, momentumMap)` in a `useMemo`; results passed down as props to tab components. `momentumMap` (skillSlug → 0–100) comes from the signals context.
-- **Coach**: `MatchCard` POSTs deterministic match facts (never CV text) to `/api/coach`; on any failure the route returns `fallbackNarration` and the UI shows `fallback: true` with disclosure copy.
+- **Coach**: `MatchCard` POSTs deterministic match facts (never CV text) to `/api/coach`, which narrates via the shared self-hosted Qwen endpoint on RunPod (`runpodChat` in `src/lib/runpod.ts`); on any failure the route returns `fallbackNarration` and the UI shows `fallback: true` with disclosure copy.
 
 ## Key Directories
 
@@ -37,7 +37,7 @@ Data flow details:
 | `src/app/` | `page.tsx` (root view switcher), `layout.tsx` (only server layout), API routes `api/signals/`, `api/coach/`, `api/extract-cv/` |
 | `src/components/skillcast/` | One named-export screen per file: `Landing`, `Onboarding`, `Dashboard`, `Employer`, `SignalsView`, plus `shared.tsx` (contexts, `useT`) and `header.tsx` |
 | `src/components/ui/` | shadcn/ui catalog (≈40 Radix-based components) — add any new primitives here |
-| `src/lib/` | Engines: `types.ts`, `matching.ts`, `momentum.ts`, `cv.ts`, `i18n.ts`, `store.ts`, `db.ts`, `utils.ts` |
+| `src/lib/` | Engines: `types.ts`, `matching.ts`, `momentum.ts`, `cv.ts`, `runpod.ts`, `i18n.ts`, `store.ts`, `db.ts`, `utils.ts` |
 | `src/data/` | Static datasets: `skills.ts` (40-skill taxonomy), `roles.ts` (16 roles), `courses.ts` (24 courses), `team.ts`, `curated.ts` (fallback signals + live sources), `sample-cv.ts` |
 | `src/hooks/` | `use-mobile.ts`, `use-toast.ts` |
 | `prisma/` | `schema.prisma` — SQLite `SignalRun` / `SignalSnapshot` / `ChangelogEntry` models |
@@ -81,8 +81,9 @@ Shell tests (run manually with `bash`):
 
 - `src/app/page.tsx` — root view switcher + hydration guard
 - `src/app/api/signals/route.ts` — live ingest → Prisma pipeline (only Prisma consumer)
-- `src/app/api/coach/route.ts` — GLM narration with deterministic fallback
+- `src/app/api/coach/route.ts` — narration of deterministic match facts via self-hosted Qwen on RunPod, with template fallback
 - `src/app/api/extract-cv/route.ts` — AI-assisted CV extraction (self-hosted Qwen on RunPod, strict JSON; deterministic fallback)
+- `src/lib/runpod.ts` — shared `runpodChat` caller for both AI call sites (extract-cv, coach)
 - `src/lib/matching.ts` — `FORMULA`, `matchRole`, `matchAll`, `haradaMatrix`, pathway duration math
 - `src/lib/momentum.ts` — `SMI_WEIGHTS`, `ingestLiveSignals`, `computeMomentum`, `seedSnapshots`
 - `src/lib/store.ts` — zustand store, `EMPTY_PROFILE`, `PERSONAS`, `INTERESTS`, `View`
