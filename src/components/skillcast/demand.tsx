@@ -109,14 +109,14 @@ export function DemandTab({ matches }: { matches: RoleMatch[] }) {
           <CardDescription>{role.signalsNote}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-64">
+          <div className="h-64 min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 4, right: 8, bottom: 4, left: 8 }}>
                 <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} interval={0} angle={-12} textAnchor="end" height={60} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} />
                 <Tooltip
-                  contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                  contentStyle={{ fontSize: 12, borderRadius: 8, backgroundColor: 'var(--popover)', color: 'var(--popover-foreground)', borderColor: 'var(--border)' }}
                   formatter={(value: number, name: string) => [Math.round(value), name]}
                 />
                 <Bar dataKey="momentum" radius={[6, 6, 0, 0]} name={t('demand.momentum')}>

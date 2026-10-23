@@ -7,6 +7,26 @@ export type PathType = 'work-with-ai' | 'pivot' | 'emerging';
 
 // ─── Three onboarding tracks ──────────────────────────────────────────────
 export type UserType = 'individual' | 'employer' | 'institution';
+export type EmploymentStatus = 'student' | 'working' | 'unemployed' | 'career-changer' | '';
+export type CareerStrategy = 'enhance' | 'related-transition' | 'new-field' | 'ai-skills' | '';
+
+export interface IndividualProfileDetails {
+  employmentStatus?: EmploymentStatus;
+  fieldOfWork?: string;
+  profession?: string;
+  specialization?: string;
+  educationLevel?: string;
+  country?: string;
+  city?: string;
+  languages?: Array<{ language: string; proficiency: 'basic' | 'intermediate' | 'advanced' | 'native' }>;
+  careerStrategy?: CareerStrategy;
+  strategyRole?: string;
+  focusSkill?: string;
+  newField?: string;
+  aiGoal?: string;
+  aiSkill?: string;
+  workPreferences?: string[];
+}
 
 export type EmployerIndustry =
   | 'technology' | 'manufacturing' | 'banking' | 'logistics'
@@ -175,6 +195,13 @@ export interface Profile {
   objective: string; // Harada-style one-line objective
   cvScrub: { items: number; kinds: string[] } | null;
   intakeMode: 'cv' | 'form' | null;
+  /** Optional extension keeps profiles saved before this onboarding update compatible. */
+  extended?: IndividualProfileDetails;
+  /** Self-reported weekly study time and reflection are stored locally with the profile. */
+  weeklyHoursCompleted?: number;
+  weeklyReflection?: string;
+  completedRoadmapTasks?: string[];
+  haradaTaskStatuses?: Record<string, 'not-started' | 'in-progress' | 'completed'>;
 }
 
 export interface MatchFactor {
@@ -196,6 +223,9 @@ export interface GapItem {
 export interface RoleMatch {
   roleSlug: string;
   score: number; // 0-100
+  skillReadiness: number; // weighted readiness against required proficiency, 0-100
+  matchingSkills: Array<{ skill: string; skillName: string; userLevel: number; requiredLevel: number }>;
+  missingSkills: GapItem[];
   factors: MatchFactor[];
   gap: GapItem[];
   demand: { moderate: number; accelerated: number };

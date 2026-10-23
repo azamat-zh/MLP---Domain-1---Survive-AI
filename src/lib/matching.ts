@@ -1,23 +1,23 @@
 import { ROLE_MAP, ROLES } from '@/data/roles';
-import { ADJACENCY_MAP, SKILL_MAP } from '@/data/skills';
+import { SKILL_MAP } from '@/data/skills';
 import { COURSES } from '@/data/courses';
 import type { GapItem, MatchFactor, Profile, RoleMatch } from '@/lib/types';
 
 // ─── Deterministic matching engine (no AI in the numbers) ──────────────────
 // Published formula — displayed in the UI and in the methodology view:
 //
-//   match score = 0.40 × skill overlap
-//               + 0.30 × transferable adjacent skills
-//               + 0.20 × experience parity
-//               + 0.10 × interest fit
+//   match score = 0.45 × skill readiness
+//               + 0.25 × interest fit
+//               + 0.20 × experience fit
+//               + 0.10 × work-preference fit
 //
 // The LLM narrator (/api/coach) only ever EXPLAINS this output.
 
 export const FORMULA = [
-  { key: 'overlap', weight: 0.4, label: 'Skill overlap' },
-  { key: 'transferable', weight: 0.3, label: 'Transferable adjacent skills' },
+  { key: 'skills', weight: 0.45, label: 'Skills' },
+  { key: 'interests', weight: 0.25, label: 'Interests' },
   { key: 'experience', weight: 0.2, label: 'Experience parity' },
-  { key: 'interest', weight: 0.1, label: 'Interest fit' },
+  { key: 'preferences', weight: 0.1, label: 'Work preferences' },
 ] as const;
 
 function experienceParity(profile: Profile, experience: 'entry' | 'mid' | 'senior', entryLevel: boolean): number {
@@ -51,11 +51,68 @@ function interestFit(profile: Profile, category: string): number {
     sustainability: ['sustainability', 'green energy'],
     creative: ['marketing'],
   };
-  for (const interest of profile.interests) {
-    const hits = map[interest] ?? [interest];
-    if (hits.some((h) => cat.includes(h))) return 1;
+  if (!profile.interests.length) return 0.5;
+  const matched = profile.interests.filter((interest) => (map[interest] ?? [interest]).some((hit) => cat.includes(hit)));
+  return matched.length / profile.interests.length;
+}
+
+function workPreferenceFit(): number {
+  // Role data has no workplace accommodation attributes, so this factor remains neutral
+  // instead of penalizing users for requesting a preference the taxonomy cannot verify.
+  return 1;
+}
+
+function categoryMatches(text: string, category: string): boolean {
+  const normalized = text.toLowerCase();
+  const cat = category.toLowerCase();
+  if (!normalized.trim()) return false;
+  if (normalized.includes(cat) || cat.includes(normalized)) return true;
+  const aliases: Record<string, string[]> = {
+    business: ['account', 'finance', 'analyst', 'management', 'commerce'],
+    people: ['human resource', 'hr', 'recruit', 'talent', 'people'],
+    technology: ['technology', 'software', 'it ', 'developer', 'computer', 'engineering'],
+    operations: ['operations', 'logistics', 'supply chain', 'process'],
+    health: ['health', 'medical', 'nursing', 'care'],
+    education: ['education', 'teacher', 'student', 'training', 'learning'],
+    marketing: ['marketing', 'content', 'communications', 'brand'],
+    sustainability: ['sustainability', 'esg', 'climate', 'environment'],
+    'green energy': ['energy', 'renewable', 'solar', 'environment'],
+    service: ['service', 'customer', 'hospitality', 'support'],
+    governance: ['governance', 'policy', 'compliance', 'regulation'],
+  };
+  return (aliases[cat] ?? []).some((alias) => normalized.includes(alias));
+}
+
+export function strategyPriority(profile: Profile, roleSlug: string): number {
+  const role = ROLE_MAP[roleSlug];
+  if (!role) return 99;
+  const details = profile.extended;
+  const strategy = details?.careerStrategy as string | undefined;
+  const currentWork = [details?.profession, details?.fieldOfWork, details?.specialization].filter(Boolean).join(' ');
+  const targetRole = details?.strategyRole ? ROLE_MAP[details.strategyRole] : undefined;
+
+  if (strategy === 'enhance' || strategy === 'enhance-current') {
+    if (categoryMatches(currentWork, role.category)) return 0;
+    if (role.pathType === 'work-with-ai') return 1;
+    return 2;
   }
-  return profile.interests.length ? 0.25 : 0.5;
+  if (strategy === 'related-transition') {
+    if (role.slug === details?.strategyRole) return 0;
+    if (targetRole && (role.category === targetRole.category || role.skills.some((required) => targetRole.skills.some((target) => target.skill === required.skill)))) return 1;
+    if (role.pathType === 'pivot') return 2;
+    return 3;
+  }
+  if (strategy === 'new-field' || strategy === 'different-field') {
+    if (details?.newField && role.category.toLowerCase() === details.newField.toLowerCase()) return 0;
+    if (details?.newField && categoryMatches(details.newField, role.category)) return 1;
+    return 2;
+  }
+  if (strategy === 'ai-skills' || strategy === 'ai-development') {
+    if (details?.aiSkill && role.skills.some((requirement) => requirement.skill === details.aiSkill)) return 0;
+    if (/ai|governance/i.test(`${role.category} ${role.title}`)) return 1;
+    return 2;
+  }
+  return 1;
 }
 
 export function matchRole(
@@ -70,12 +127,14 @@ export function matchRole(
   const totalWeight = role.skills.reduce((s, r) => s + r.weight, 0) || 1;
 
   // 1) Direct overlap: user level vs required minimum level
-  let overlapScore = 0;
+  let skillReadiness = 0;
   const gap: GapItem[] = [];
+  const matchingSkills: RoleMatch['matchingSkills'] = [];
   for (const req of role.skills) {
     const lvl = userSkills[req.skill] ?? 0;
     const fit = Math.min(lvl, req.minLevel) / req.minLevel;
-    overlapScore += req.weight * fit;
+    skillReadiness += req.weight * fit;
+    if (lvl > 0) matchingSkills.push({ skill: req.skill, skillName: SKILL_MAP[req.skill]?.name ?? req.skill, userLevel: lvl, requiredLevel: req.minLevel });
     if (lvl < req.minLevel) {
       gap.push({
         skill: req.skill,
@@ -88,33 +147,18 @@ export function matchRole(
       });
     }
   }
-  overlapScore = overlapScore / totalWeight;
-
-  // 2) Transferable credit: adjacent skills the user already has
-  let transferScore = 0;
-  for (const req of role.skills) {
-    const lvl = userSkills[req.skill] ?? 0;
-    if (lvl >= req.minLevel) continue;
-    const need = req.minLevel - lvl;
-    let best = 0;
-    for (const [ownSlug, ownLvl] of Object.entries(userSkills)) {
-      if (ownLvl <= 0) continue;
-      const w = ADJACENCY_MAP[req.skill]?.[ownSlug] ?? 0;
-      if (w > 0) best = Math.max(best, (ownLvl / 5) * w);
-    }
-    transferScore += req.weight * Math.min(1, best) * Math.min(1, need / req.minLevel);
-  }
-  transferScore = Math.min(1, transferScore / totalWeight / 0.7); // cap contribution
+  skillReadiness /= totalWeight;
 
   // 3) Experience parity + 4) interest fit
   const expScore = experienceParity(profile, role.experience, role.entryLevel);
   const intScore = interestFit(profile, role.category);
+  const preferenceScore = workPreferenceFit();
 
   const score =
-    FORMULA[0].weight * overlapScore +
-    FORMULA[1].weight * transferScore +
+    FORMULA[0].weight * skillReadiness +
+    FORMULA[1].weight * intScore +
     FORMULA[2].weight * expScore +
-    FORMULA[3].weight * intScore;
+    FORMULA[3].weight * preferenceScore;
 
   // Pathway duration estimate from the course registry
   const gapSorted = [...gap].sort((a, b) => b.weight * b.momentum - a.weight * a.momentum);
@@ -132,15 +176,18 @@ export function matchRole(
   const pathwayWeeks = Math.max(1, Math.ceil(hours / weekly));
 
   const factors: MatchFactor[] = [
-    { label: 'Skill overlap', value: overlapScore, weight: 0.4 },
-    { label: 'Transferable skills', value: transferScore, weight: 0.3 },
-    { label: 'Experience fit', value: expScore, weight: 0.2 },
-    { label: 'Interest fit', value: intScore, weight: 0.1 },
+    { label: 'Skills', value: skillReadiness, weight: 0.45 },
+    { label: 'Interests', value: intScore, weight: 0.25 },
+    { label: 'Experience', value: expScore, weight: 0.2 },
+    { label: 'Work preferences', value: preferenceScore, weight: 0.1 },
   ];
 
   return {
     roleSlug,
     score: Math.round(score * 100),
+    skillReadiness: Math.round(skillReadiness * 100),
+    matchingSkills,
+    missingSkills: gapSorted,
     factors,
     gap: gapSorted,
     demand: { moderate: role.demandModerate, accelerated: role.demandAccelerated },
@@ -154,7 +201,7 @@ export function matchAll(
 ): RoleMatch[] {
   return ROLES.map((r) => matchRole(profile, r.slug, momentum))
     .filter((m): m is RoleMatch => m !== null)
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => strategyPriority(profile, a.roleSlug) - strategyPriority(profile, b.roleSlug) || b.score - a.score);
 }
 
 // ─── Harada-style skill matrix ─────────────────────────────────────────────

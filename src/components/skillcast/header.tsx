@@ -37,28 +37,31 @@ export function Header() {
   const { view, setView, lang, setLang, onboarded, resetDemo } = useSkillCast();
   const { theme, setTheme } = useTheme();
   const mounted = useMounted();
+  const landing = view === 'landing';
 
   const views: Array<{ id: View; label: string; enabled: boolean }> = [
     { id: 'landing', label: t('nav.home'), enabled: true },
     { id: 'dashboard', label: t('nav.dashboard'), enabled: onboarded },
     { id: 'employer', label: t('nav.employer'), enabled: true },
-    { id: 'institution', label: t('nav.institution'), enabled: true },
     { id: 'signals', label: t('nav.signals'), enabled: true },
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
+    <header className={`sticky top-0 z-40 border-b backdrop-blur-xl transition-colors ${landing
+      ? 'border-white/10 bg-[#090b2b]/80 text-white supports-[backdrop-filter]:bg-[#090b2b]/70'
+      : 'border-border bg-background/90 text-foreground supports-[backdrop-filter]:bg-background/75'
+    }`}>
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
         <button
           onClick={() => setView('landing')}
-          className="flex items-center gap-2 font-semibold tracking-tight"
+          className="flex items-center gap-2 rounded-md font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
           aria-label="SkillCast home"
         >
-          <CloudSun className="h-5 w-5 text-teal-600 dark:text-teal-400" aria-hidden />
+          <CloudSun className={`h-5 w-5 ${landing ? 'text-blue-300' : 'text-blue-600 dark:text-blue-400'}`} aria-hidden />
           <span className="text-lg">
-            Skill<span className="text-teal-600 dark:text-teal-400">Cast</span>
+            Skill<span className={landing ? 'text-blue-300' : 'text-blue-600 dark:text-blue-400'}>Cast</span>
           </span>
-          <span className="hidden rounded-full border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline">
+          <span className={`hidden rounded-full border px-2 py-0.5 text-[10px] font-medium sm:inline ${landing ? 'border-white/15 text-blue-100/55' : 'border-border text-muted-foreground'}`}>
             POC
           </span>
         </button>
@@ -71,7 +74,11 @@ export function Header() {
               size="sm"
               disabled={!v.enabled}
               onClick={() => setView(v.id)}
-              className="h-8 text-sm"
+              className={`h-8 text-sm ${landing
+                ? view === v.id
+                  ? 'bg-white/10 text-white hover:bg-white/15 hover:text-white'
+                  : 'text-blue-100/70 hover:bg-white/[0.07] hover:text-white disabled:text-blue-100/30'
+                : ''}`}
             >
               {v.label}
             </Button>
@@ -85,7 +92,7 @@ export function Header() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className={`h-8 w-8 ${landing ? 'text-blue-100/75 hover:bg-white/10 hover:text-white' : ''}`}
                   aria-label={t('nav.theme')}
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 >
@@ -105,7 +112,7 @@ export function Header() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Select value={lang} onValueChange={(v) => setLang(v as typeof lang)}>
-                  <SelectTrigger size="sm" className="h-8 w-auto gap-1 border-dashed text-xs">
+                  <SelectTrigger size="sm" className={`h-8 w-auto gap-1 text-xs ${landing ? 'border-white/15 bg-white/[0.04] text-blue-100/85 hover:bg-white/10' : 'border-dashed'}`}>
                     <Languages className="h-3.5 w-3.5" aria-hidden />
                     <SelectValue aria-label={t('nav.lang')} />
                   </SelectTrigger>
@@ -124,7 +131,7 @@ export function Header() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={t('nav.reset')}>
+              <Button variant="ghost" size="icon" className={`h-8 w-8 ${landing ? 'text-blue-100/75 hover:bg-white/10 hover:text-white' : ''}`} aria-label={t('nav.reset')}>
                 <RotateCcw className="h-4 w-4" aria-hidden />
               </Button>
             </DropdownMenuTrigger>

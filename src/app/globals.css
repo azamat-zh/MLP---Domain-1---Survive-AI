@@ -44,6 +44,7 @@
 }
 
 :root {
+  color-scheme: light;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -51,8 +52,8 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -62,7 +63,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: #2563eb;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -79,24 +80,25 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  color-scheme: dark;
+  --background: #020617;
+  --foreground: #f1f5f9;
+  --card: #0f172a;
+  --card-foreground: #f1f5f9;
+  --popover: #0f172a;
+  --popover-foreground: #f1f5f9;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #1e293b;
+  --secondary-foreground: #f1f5f9;
+  --muted: #1e293b;
+  --muted-foreground: #cbd5e1;
+  --accent: #1e293b;
+  --accent-foreground: #f1f5f9;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: #334155;
+  --input: #475569;
+  --ring: #2563eb;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -111,6 +113,251 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+
+/* Landing content uses the product's light palette in light mode; the hero stays dark. */
+.skillcast-landing {
+  --background: #f7faff;
+  --foreground: #172033;
+  --card: #ffffff;
+  --card-foreground: #172033;
+  --popover: #ffffff;
+  --popover-foreground: #172033;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #eaf1ff;
+  --secondary-foreground: #1e3a8a;
+  --muted: #eff4ff;
+  --muted-foreground: #5f6d84;
+  --accent: #eaf1ff;
+  --accent-foreground: #1e3a8a;
+  --border: #dbe6f7;
+  --input: #dbe6f7;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.dark .skillcast-landing {
+  --background: #020617;
+  --foreground: #f1f5f9;
+  --card: #0f172a;
+  --card-foreground: #f1f5f9;
+  --popover: #0f172a;
+  --popover-foreground: #f1f5f9;
+  --secondary: #1e293b;
+  --secondary-foreground: #f1f5f9;
+  --muted: #1e293b;
+  --muted-foreground: #cbd5e1;
+  --accent: #1e293b;
+  --accent-foreground: #f1f5f9;
+  --border: #334155;
+  --input: #475569;
+  background: var(--background);
+}
+
+body:has(.skillcast-landing) footer {
+  border-color: #dbe6f7;
+  background-color: #ffffff;
+  color: #5f6d84;
+}
+
+.dark body:has(.skillcast-landing) footer {
+  border-color: #334155;
+  background-color: #020617;
+  color: #cbd5e1;
+}
+
+.skillcast-hero {
+  position: relative;
+  background:
+    radial-gradient(ellipse at 50% 62%, rgb(49 53 145 / 38%), transparent 54%),
+    radial-gradient(ellipse at 8% 18%, rgb(48 75 156 / 18%), transparent 35%),
+    linear-gradient(180deg, #090b2b 0%, #080a29 100%);
+}
+
+.skillcast-hero-glow {
+  position: absolute;
+  z-index: -1;
+  inset: 12% 18% 4%;
+  border-radius: 9999px;
+  background: radial-gradient(ellipse, rgb(83 91 208 / 17%), transparent 68%);
+  filter: blur(26px);
+  pointer-events: none;
+}
+
+.skillcast-bubble {
+  position: absolute;
+  z-index: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgb(211 220 255 / 24%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 24%, rgb(255 255 255 / 31%), transparent 17%),
+    radial-gradient(circle at 70% 78%, rgb(112 106 255 / 22%), transparent 43%),
+    linear-gradient(145deg, rgb(131 154 255 / 22%), rgb(56 57 155 / 9%) 55%, rgb(15 22 69 / 24%));
+  box-shadow:
+    inset 9px 10px 24px rgb(255 255 255 / 8%),
+    inset -12px -15px 26px rgb(5 8 43 / 30%),
+    0 18px 55px rgb(4 8 41 / 30%),
+    0 0 35px rgb(101 112 255 / 13%);
+  backdrop-filter: blur(5px);
+  animation: skillcast-float 9s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.skillcast-bubble::after {
+  position: absolute;
+  inset: 12% 17% auto auto;
+  width: 24%;
+  height: 12%;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 34%);
+  filter: blur(8px);
+  content: "";
+  transform: rotate(-35deg);
+}
+
+.skillcast-bubble span {
+  color: rgb(241 244 255 / 86%);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-shadow: 0 1px 14px rgb(147 160 255 / 45%);
+}
+
+.skillcast-bubble small {
+  display: block;
+  margin-top: 0.2rem;
+  color: rgb(220 227 255 / 62%);
+  font-size: 0.56rem;
+  font-weight: 400;
+}
+
+.skillcast-bubble--one { top: 9%; left: 8%; width: 112px; height: 112px; animation-delay: -2s; }
+.skillcast-bubble--two { top: 43%; left: 3%; width: 72px; height: 72px; animation-delay: -5s; }
+.skillcast-bubble--three { bottom: 5%; left: 15%; width: 94px; height: 94px; animation-delay: -1s; }
+.skillcast-bubble--four { top: 12%; right: 11%; width: 76px; height: 76px; animation-delay: -4s; }
+.skillcast-bubble--five { top: 47%; right: 4%; width: 118px; height: 118px; animation-delay: -6s; }
+.skillcast-bubble--six { right: 17%; bottom: 4%; width: 62px; height: 62px; animation-delay: -3s; }
+
+@keyframes skillcast-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -15px, 0); }
+}
+
+@media (max-width: 640px) {
+  .skillcast-bubble--one { top: 6%; left: -34px; width: 78px; height: 78px; }
+  .skillcast-bubble--two { top: 39%; left: -29px; width: 60px; height: 60px; }
+  .skillcast-bubble--three { bottom: 3%; left: 2%; width: 72px; height: 72px; }
+  .skillcast-bubble--four { top: 7%; right: -24px; width: 64px; height: 64px; }
+  .skillcast-bubble--five { top: 48%; right: -42px; width: 92px; height: 92px; }
+  .skillcast-bubble--six { right: 4%; bottom: 2%; width: 52px; height: 52px; }
+  .skillcast-bubble span { font-size: 0.62rem; }
+  .skillcast-bubble small { font-size: 0.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skillcast-bubble { animation: none; }
+}
+
+.skillcast-onboarding {
+  --background: #f5f8ff;
+  --foreground: #172033;
+  --card: #ffffff;
+  --card-foreground: #172033;
+  --popover: #ffffff;
+  --popover-foreground: #172033;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #eaf1ff;
+  --secondary-foreground: #1e3a8a;
+  --muted: #eff4ff;
+  --muted-foreground: #5f6d84;
+  --accent: #eaf1ff;
+  --accent-foreground: #1e3a8a;
+  --border: #dbe6f7;
+  --input: #dbe6f7;
+  min-height: calc(100vh - 64px);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(219 234 254 / 65%), transparent 44%),
+    linear-gradient(180deg, #f8faff 0%, #f3f7ff 100%);
+  color: #172033;
+}
+
+.dark .skillcast-onboarding {
+  --background: #020617;
+  --foreground: #f1f5f9;
+  --card: #0f172a;
+  --card-foreground: #f1f5f9;
+  --popover: #0f172a;
+  --popover-foreground: #f1f5f9;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #1e293b;
+  --secondary-foreground: #f1f5f9;
+  --muted: #1e293b;
+  --muted-foreground: #cbd5e1;
+  --accent: #1e293b;
+  --accent-foreground: #f1f5f9;
+  --border: #334155;
+  --input: #475569;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(37 99 235 / 12%), transparent 44%),
+    linear-gradient(180deg, #0f172a 0%, #020617 100%);
+  color: #f1f5f9;
+}
+
+/* Dark surface aliases keep legacy light-mode utility classes readable across screens.
+   Components with explicit dark variants keep their more specific palette. */
+.dark .skillcast-app [class~="bg-white"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-white/80"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-white/60"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-white/90"]:not([class*="dark:bg-"]) { background-color: #0f172a !important; }
+.dark .skillcast-app [class~="bg-slate-50"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-slate-100"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-slate-50/60"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-blue-50"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-blue-50/50"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-blue-50/40"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-blue-50/60"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-blue-50/70"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-indigo-50"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-indigo-50/60"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-violet-50"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-violet-50/60"]:not([class*="dark:bg-"]),
+.dark .skillcast-app [class~="bg-emerald-50"]:not([class*="dark:bg-"]) { background-color: #1e293b !important; }
+.dark .skillcast-app [class*="hover:bg-blue-50"]:hover,
+.dark .skillcast-app [class*="hover:bg-indigo-50"]:hover { background-color: #1e3a5f !important; }
+.dark .skillcast-app [class~="text-slate-950"],
+.dark .skillcast-app [class~="text-slate-900"],
+.dark .skillcast-app [class~="text-slate-800"],
+.dark .skillcast-app [class~="text-slate-700"],
+.dark .skillcast-app [class~="text-gray-900"],
+.dark .skillcast-app [class~="text-gray-800"],
+.dark .skillcast-app [class~="text-gray-700"] { color: #f1f5f9 !important; }
+.dark .skillcast-app [class~="text-slate-600"],
+.dark .skillcast-app [class~="text-slate-500"],
+.dark .skillcast-app [class~="text-slate-400"],
+.dark .skillcast-app [class~="text-gray-600"],
+.dark .skillcast-app [class~="text-gray-500"] { color: #cbd5e1 !important; }
+.dark .skillcast-app [class~="text-blue-800"],
+.dark .skillcast-app [class~="text-blue-700"],
+.dark .skillcast-app [class~="text-indigo-800"],
+.dark .skillcast-app [class~="text-indigo-700"] { color: #93c5fd !important; }
+.dark .skillcast-app [class~="text-blue-600"] { color: #60a5fa !important; }
+.dark .skillcast-app [class~="border-blue-50"]:not([class*="dark:border-"]),
+.dark .skillcast-app [class~="border-blue-100"]:not([class*="dark:border-"]),
+.dark .skillcast-app [class~="border-blue-200"]:not([class*="dark:border-"]),
+.dark .skillcast-app [class~="border-indigo-100"]:not([class*="dark:border-"]),
+.dark .skillcast-app [class~="border-indigo-200"]:not([class*="dark:border-"]),
+.dark .skillcast-app [class~="border-violet-100"]:not([class*="dark:border-"]),
+.dark .skillcast-app [class~="border-slate-200"]:not([class*="dark:border-"]) { border-color: #334155 !important; }
+.dark .skillcast-app input,
+.dark .skillcast-app textarea,
+.dark .skillcast-app [role="combobox"] { color: #e4edfb; }
+.dark .skillcast-app input::placeholder,
+.dark .skillcast-app textarea::placeholder { color: #cbd5e1; opacity: 0.72; }
 
 @layer base {
   * {

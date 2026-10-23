@@ -17,7 +17,7 @@ import { LevelDots, useT } from './shared';
 // structured extraction. If the AI path fails, the deterministic keyword
 // extractor takes over — the flow always renders a result the user confirms.
 
-export function CvStep({ onDone }: { onDone: () => void }) {
+export function CvStep({ onDone, showContinue = true, preserveProfile = false }: { onDone: () => void; showContinue?: boolean; preserveProfile?: boolean }) {
   const t = useT();
   const { profile, setProfile } = useSkillCast();
   const [cvText, setCvText] = useState('');
@@ -26,11 +26,6 @@ export function CvStep({ onDone }: { onDone: () => void }) {
   const [extractMode, setExtractMode] = useState<'llm' | 'deterministic' | null>(null);
   const [extractedSkills, setExtractedSkills] = useState<ExtractedSkill[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
-  const abortRef = useRef<AbortController | null>(null);
-  const intakeRef = useRef<{ scrubbedText: string; scrubMeta: { intakeMode: 'cv'; cvScrub: { items: number; kinds: string[] } } }>({
-    scrubbedText: '',
-    scrubMeta: { intakeMode: 'cv', cvScrub: { items: 0, kinds: [] } },
-  });
 
   const handleFile = (file: File) => {
     const reader = new FileReader();
@@ -48,29 +43,26 @@ export function CvStep({ onDone }: { onDone: () => void }) {
       intakeMode: 'cv' as const,
       cvScrub: { items: scrubbed.items.length, kinds: [...new Set(scrubbed.items.map((i) => i.kind))] },
     };
-    intakeRef.current = { scrubbedText: scrubbed.scrubbedText, scrubMeta };
-    abortRef.current = new AbortController();
     try {
       const res = await fetch('/api/extract-cv', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: scrubbed.scrubbedText }),
-        signal: abortRef.current.signal,
       });
       const data = (await res.json()) as { ok?: boolean; skills?: Record<string, number>; years?: number };
       if (data.ok && data.skills && Object.keys(data.skills).length > 0) {
         setProfile({
-          skills: data.skills,
-          years: data.years && data.years > 0 ? data.years : profile.years,
+          skills: preserveProfile ? { ...profile.skills, ...data.skills } : data.skills,
+          years: preserveProfile ? profile.years : data.years && data.years > 0 ? data.years : profile.years,
           ...scrubMeta,
         });
         setExtractedSkills(
           Object.entries(data.skills).map(([slug, level]) => ({
             slug,
-            level,
-            strongContext: false,
             name: SKILL_MAP[slug]?.name ?? slug,
+            level,
             mentions: 0,
+            strongContext: false,
           }))
         );
         setExtractMode('llm');
@@ -82,23 +74,13 @@ export function CvStep({ onDone }: { onDone: () => void }) {
       setExtracting(false);
     }
     const skills = skillsFromCV(scrubbed.scrubbedText);
-    setProfile({ skills, ...scrubMeta });
+    setProfile({ skills: preserveProfile ? { ...profile.skills, ...skills } : skills, ...scrubMeta });
     setExtractedSkills(extractSkills(scrubbed.scrubbedText).slice(0, 10));
     setExtractMode('deterministic');
   };
 
   const useForm = () => {
     setProfile({ intakeMode: 'form', cvScrub: null });
-    onDone();
-  };
-
-  // Skip the AI analysis: abort the in-flight extraction and proceed with the
-  // deterministic keyword extractor instead.
-  const skipAi = () => {
-    abortRef.current?.abort();
-    const { scrubbedText, scrubMeta } = intakeRef.current;
-    const skills = skillsFromCV(scrubbedText);
-    setProfile({ skills, ...scrubMeta });
     onDone();
   };
 
@@ -244,13 +226,11 @@ export function CvStep({ onDone }: { onDone: () => void }) {
             <p className="text-sm text-muted-foreground">{t('onb.skills.none')}</p>
           )}
 
-          <Button
-            onClick={extracting ? skipAi : onDone}
-            disabled={!extracting && !skillsReady}
-            className="w-full gap-2"
-          >
-            {extracting ? t('onb.cv.skip') : t('common.next')}
-          </Button>
+          {showContinue && (
+            <Button onClick={onDone} disabled={!skillsReady} className="w-full gap-2">
+              {t('common.next')}
+            </Button>
+          )}
         </div>
       )}
     </div>

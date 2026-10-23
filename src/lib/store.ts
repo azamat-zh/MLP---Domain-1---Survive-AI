@@ -70,6 +70,23 @@ export const EMPTY_PROFILE: Profile = {
   objective: '',
   cvScrub: null,
   intakeMode: null,
+  extended: {
+    employmentStatus: '',
+    fieldOfWork: '',
+    profession: '',
+    specialization: '',
+    educationLevel: '',
+    country: '',
+    city: '',
+    languages: [],
+    careerStrategy: '',
+    strategyRole: '',
+    focusSkill: '',
+    newField: '',
+    aiGoal: '',
+    aiSkill: '',
+    workPreferences: ['none'],
+  },
 };
 
 export const EMPTY_EMPLOYER: EmployerProfile = {

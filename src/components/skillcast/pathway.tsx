@@ -17,7 +17,7 @@ import { SdgBadge, SourceChip, useSignals, useT } from './shared';
 // Courses are picked deterministically: gap priority (weight × momentum),
 // then inclusion-aware format preference, then free-first. Nothing invented.
 
-interface Node {
+export interface PathwayNode {
   courseSlug: string;
   skill: string;
   startWeek: number;
@@ -27,9 +27,9 @@ interface Node {
 const AI_SLUGS = new Set(['prompt-engineering', 'ai-agents', 'ai-augmented-ops', 'machine-learning', 'ai-content-ops', 'responsible-ai', 'mlops']);
 const GREEN_SLUGS = new Set(['renewable-energy', 'energy-efficiency', 'ev-mobility', 'climate-data', 'smart-agriculture']);
 
-function pickCourses(gap: RoleMatch['gap'], inclusion: { dyslexia: boolean; visual: boolean; hearing: boolean }) {
+export function pickCourses(gap: RoleMatch['gap'], inclusion: { dyslexia: boolean; visual: boolean; hearing: boolean }) {
   const covered = new Set<string>();
-  const picked: Node[] = [];
+  const picked: PathwayNode[] = [];
   let hours = 0;
   const budget = Math.max(1, useSkillCast.getState().profile.budget || 5);
 
