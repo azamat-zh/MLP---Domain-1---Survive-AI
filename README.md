@@ -63,6 +63,30 @@ DATABASE_URL=file:../db/custom.db
 - `RUNPOD_API_KEY` (optional): API key used server-side to call the self-hosted vLLM endpoint for AI-assisted CV extraction. Without it, onboarding falls back to deterministic in-browser extraction. Keep it in `.env.local` (gitignored).
 - `RUNPOD_ENDPOINT_ID` (optional): Runpod serverless endpoint id; defaults to the deployed `skillcast-qwen` endpoint.
 - Optional: `PORT` (default 3000), `HOSTNAME` (default 0.0.0.0), `NEXT_TELEMETRY_DISABLED`.
+- `CRON_SECRET` (optional): Secret for the scheduled-signal-ingest endpoint (`/api/signals/cron`).
+  If set, the cron route requires `Authorization: Bearer <secret>`. See "Scheduled signal ingest" below.
+
+### Scheduled signal ingest
+
+The signals pipeline can be triggered on a schedule (e.g. every 30 minutes) via the
+`/api/signals/cron` endpoint. It force-refreshes live signals, writes a changelog
+entry, and prunes old runs — the same as a manual POST to `/api/signals` but without
+the 60-second in-process cooldown.
+
+Set `CRON_SECRET` in your environment (`.env` or `.env.local`):
+
+```
+CRON_SECRET=your-long-random-secret
+```
+
+Then configure a cron job to call the endpoint every 30 minutes:
+
+```cron
+*/30 * * * * curl -fsS -H "Authorization: Bearer your-long-random-secret" https://your-app.example.com/api/signals/cron
+```
+
+Without the correct `Authorization` header the endpoint returns 401.
+Without `CRON_SECRET` set, the endpoint returns 501 (Not Implemented).
 
 ### Connect Runpod (optional — AI-assisted CV extraction)
 

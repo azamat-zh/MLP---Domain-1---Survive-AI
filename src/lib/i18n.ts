@@ -426,6 +426,9 @@ const en: Dict = {
   'sig.changelog': 'Forecast changelog',
   'sig.note': 'Live sources skew to English-language remote jobs; MyFutureJobs (PERKESO) integration is planned for local-market fidelity.',
   'sig.method': 'Methodology: momentum = 50% posting frequency + 30% recent-vs-earlier trend + 20% research horizon (cited).',
+  'sig.demoBanner': '⚠ Demo data — showing a cached baseline snapshot from {date}. Live sources unreachable or database not initialised.',
+  'sig.lowConfidence': 'low confidence · {n} postings',
+  'sig.noEvidence': 'No example postings for this skill.',
 
   'common.source': 'Source',
   'common.date': 'Date',
@@ -856,6 +859,9 @@ const ms: Dict = {
   'sig.changelog': 'Lejar perubahan ramalan',
   'sig.note': 'Sumber langsung condong ke pekerjaan jarak jauh berbahasa Inggeris; integrasi MyFutureJobs (PERKESO) dirancang.',
   'sig.method': 'Metodologi: momentum = 50% kekerapan iklan + 30% trend kini-vs-awal + 20% ufuk penyelidikan (tersitat).',
+  'sig.demoBanner': '⚠ Data demo — menunjukkan gambar dasar cached dari {date}. Sumber langsung tidak dapat dicapai atau pangkalan data tidak dimulakan.',
+  'sig.lowConfidence': 'keyakinan rendah · {n} iklan',
+  'sig.noEvidence': 'Tiada contoh iklan untuk kemahiran ini.',
 
   'common.source': 'Sumber',
   'common.date': 'Tarikh',
@@ -1285,6 +1291,9 @@ const zh: Dict = {
   'sig.changelog': '预测更新日志',
   'sig.note': '实时来源偏向英语远程岗位；已规划接入 MyFutureJobs（PERKESO）以贴近本地市场。',
   'sig.method': '方法论：动能 = 50% 招聘出现率 + 30% 近远期趋势 + 20% 研究前瞻（有引用）。',
+  'sig.demoBanner': '⚠ 演示数据 — 显示来自 {date} 的缓存基线快照。实时来源不可达或数据库未初始化。',
+  'sig.lowConfidence': '低置信度 · {n} 条招聘',
+  'sig.noEvidence': '暂无该技能的示例招聘。',
 
   'common.source': '来源',
   'common.date': '日期',
@@ -1714,6 +1723,9 @@ const ru: Dict = {
   'sig.changelog': 'Журнал изменений прогноза',
   'sig.note': 'Живые источники смещены к англоязычным удалённым вакансиям; интеграция MyFutureJobs (PERKESO) запланирована.',
   'sig.method': 'Методология: импульс = 50% частота в вакансиях + 30% тренд + 20% исследовательский горизонт.',
+  'sig.demoBanner': '⚠ Демо-данные — показан кешированный базовый снимок от {date}. Живые источники недоступны или база данных не инициализирована.',
+  'sig.lowConfidence': 'низкая уверенность · {n} вакансий',
+  'sig.noEvidence': 'Нет примеров вакансий для этого навыка.',
 
   'common.source': 'Источник',
   'common.date': 'Дата',

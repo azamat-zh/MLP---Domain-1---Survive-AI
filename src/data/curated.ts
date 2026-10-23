@@ -20,6 +20,18 @@ export const LIVE_SOURCES = [
     description: 'Job postings from the German/EU market (JSON, free, no key). Updated hourly.',
   },
   {
+    name: 'Greenhouse Boards (10 verified)',
+    url: 'https://boards-api.greenhouse.io/v1/boards/{board}/jobs',
+    kind: 'live',
+    description: 'stripe, datadog, airbnb, cloudflare, figma, databricks, roblox, pinterest, dropbox, coinbase. Each board fetched independently; per-board failures isolated.',
+  },
+  {
+    name: 'Ashby Boards (5 verified)',
+    url: 'https://api.ashbyhq.com/posting-api/job-board/{org}',
+    kind: 'live',
+    description: 'notion, perplexity, mux, linear, ramp. Each org fetched independently; per-org failures isolated.',
+  },
+  {
     name: 'MyFutureJobs (planned)',
     url: 'https://myfuturejobs.gov.my/',
     kind: 'planned',

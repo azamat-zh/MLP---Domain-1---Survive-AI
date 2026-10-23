@@ -22,6 +22,7 @@ export interface Posting {
   description: string;
   source: string;
   date: Date;
+  url?: string;
 }
 
 export const SMI_WEIGHTS = { frequency: 0.5, trend: 0.3, horizon: 0.2 };
@@ -32,9 +33,15 @@ export const SMI_WEIGHTS = { frequency: 0.5, trend: 0.3, horizon: 0.2 };
 const REMOTIVE_URL = 'https://remotive.com/api/remote-jobs';
 const ARBEITNOW_URL = 'https://www.arbeitnow.com/api/job-board-api';
 
-// Verified public boards (checked 2026-10); each is a free, keyless API.
-const GREENHOUSE_BOARDS = ['stripe', 'datadog', 'airbnb'];
-const ASHBY_ORGS = ['notion', 'perplexity', 'mux'];
+// Verified public Greenhouse boards (checked 2026-10-23):
+// stripe, datadog, airbnb, cloudflare, figma, databricks, roblox,
+// pinterest, dropbox, coinbase — each returns HTTP 200 with a jobs array.
+// sentry returned 404 and was excluded.
+const GREENHOUSE_BOARDS = ['stripe', 'datadog', 'airbnb', 'cloudflare', 'figma', 'databricks', 'roblox', 'pinterest', 'dropbox', 'coinbase'];
+
+// Verified Ashby job-board orgs (checked 2026-10-23):
+// notion, perplexity, mux, linear, ramp — each returns HTTP 200.
+const ASHBY_ORGS = ['notion', 'perplexity', 'mux', 'linear', 'ramp'];
 
 function stripHtml(s: string): string {
   return s.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ');
@@ -53,7 +60,7 @@ export async function fetchRemotive(): Promise<Posting[]> {
   const res = await fetch(REMOTIVE_URL, { signal: AbortSignal.timeout(15000) });
   if (!res.ok) throw new Error(`Remotive ${res.status}`);
   const json = (await res.json()) as {
-    jobs?: Array<{ title: string; company_name?: string; description?: string; publication_date?: string }>;
+    jobs?: Array<{ title: string; company_name?: string; description?: string; publication_date?: string; url?: string }>;
   };
   return (json.jobs ?? []).map((j) => ({
     title: j.title ?? '',
@@ -61,6 +68,7 @@ export async function fetchRemotive(): Promise<Posting[]> {
     description: stripHtml(j.description ?? ''),
     source: 'Remotive',
     date: j.publication_date ? new Date(j.publication_date) : new Date(),
+    url: j.url,
   }));
 }
 
@@ -70,7 +78,7 @@ export async function fetchArbeitnow(): Promise<Posting[]> {
   const out: Posting[] = [];
   for (let page = 1; page <= 3; page++) {
     const url = page === 1 ? ARBEITNOW_URL : `${ARBEITNOW_URL}?page=${page}`;
-    let json: { data?: Array<{ title: string; company_name?: string; description?: string; created_at?: number }> };
+    let json: { data?: Array<{ title: string; company_name?: string; description?: string; created_at?: number; url?: string }> };
     if (page === 1) {
       const res = await fetch(ARBEITNOW_URL, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) throw new Error(`Arbeitnow ${res.status}`);
@@ -88,6 +96,7 @@ export async function fetchArbeitnow(): Promise<Posting[]> {
       description: stripHtml(j.description ?? ''),
       source: 'Arbeitnow',
       date: j.created_at ? new Date(j.created_at * 1000) : new Date(),
+      url: j.url,
     }));
     if (list.length === 0) break;
     out.push(...list);
@@ -97,56 +106,80 @@ export async function fetchArbeitnow(): Promise<Posting[]> {
 
 // Greenhouse boards API: every open job per board, HTML content included.
 // Boards list is the verified subset; per-board cap keeps the ingest bounded.
-export async function fetchGreenhouse(): Promise<Posting[]> {
-  const out: Posting[] = [];
+// Each board is wrapped in try/catch: a single board failure doesn't lose the rest.
+export async function fetchGreenhouse(): Promise<{ postings: Posting[]; boardResults: Array<{ board: string; ok: boolean; count: number }> }> {
+  const allPostings: Posting[] = [];
+  const boardResults: Array<{ board: string; ok: boolean; count: number }> = [];
   for (const board of GREENHOUSE_BOARDS) {
-    const json = (await fetchJson(
-      `https://boards-api.greenhouse.io/v1/boards/${board}/jobs?content=true`
-    )) as {
-      jobs?: Array<{ title?: string; content?: string; updated_at?: string }>;
-    };
-    for (const j of (json.jobs ?? []).slice(0, 250)) {
-      const d = j.updated_at;
-      out.push({
-        title: j.title ?? '',
-        company: board,
-        description: `[${board}] ${stripHtml(j.content ?? '')}`,
-        source: 'Greenhouse',
-        date: d ? new Date(d) : new Date(),
-      });
+    try {
+      const json = (await fetchJson(
+        `https://boards-api.greenhouse.io/v1/boards/${board}/jobs?content=true`
+      )) as {
+        jobs?: Array<{ title?: string; content?: string; updated_at?: string; absolute_url?: string }>;
+      };
+      const jobs = (json.jobs ?? []).slice(0, 150);
+      for (const j of jobs) {
+        const d = j.updated_at;
+        allPostings.push({
+          title: j.title ?? '',
+          company: board,
+          description: `[${board}] ${stripHtml(j.content ?? '')}`,
+          source: 'Greenhouse',
+          date: d ? new Date(d) : new Date(),
+          url: j.absolute_url,
+        });
+      }
+      boardResults.push({ board, ok: true, count: jobs.length });
+    } catch (e) {
+      console.error(`[signals] Greenhouse board ${board} failed:`, e);
+      boardResults.push({ board, ok: false, count: 0 });
     }
   }
-  return out;
+  if (boardResults.every((b) => !b.ok)) throw new Error('All Greenhouse boards failed');
+  return { postings: allPostings, boardResults };
 }
 
 // Ashby job-board API: same idea, per-org boards. `descriptionPlain` exists on
 // newer endpoints; fall back to stripping descriptionHtml either way.
-export async function fetchAshby(): Promise<Posting[]> {
-  const out: Posting[] = [];
+// Each org is wrapped in try/catch: a single org failure doesn't lose the rest.
+export async function fetchAshby(): Promise<{ postings: Posting[]; boardResults: Array<{ board: string; ok: boolean; count: number }> }> {
+  const allPostings: Posting[] = [];
+  const boardResults: Array<{ board: string; ok: boolean; count: number }> = [];
   for (const org of ASHBY_ORGS) {
-    const json = (await fetchJson(
-      `https://api.ashbyhq.com/posting-api/job-board/${org}`
-    )) as {
-      jobs?: Array<{
-        title?: string;
-        descriptionHtml?: string;
-        descriptionPlain?: string;
-        updatedAt?: string;
-        createdAt?: string;
-      }>;
-    };
-    for (const j of (json.jobs ?? []).slice(0, 250)) {
-      const d = j.updatedAt ?? j.createdAt;
-      out.push({
-        title: j.title ?? '',
-        company: org,
-        description: `[${org}] ${stripHtml(j.descriptionHtml ?? j.descriptionPlain ?? '')}`,
-        source: 'Ashby',
-        date: d ? new Date(d) : new Date(),
-      });
+    try {
+      const json = (await fetchJson(
+        `https://api.ashbyhq.com/posting-api/job-board/${org}`
+      )) as {
+        jobs?: Array<{
+          title?: string;
+          descriptionHtml?: string;
+          descriptionPlain?: string;
+          updatedAt?: string;
+          createdAt?: string;
+          jobUrl?: string;
+          url?: string;
+        }>;
+      };
+      const jobs = (json.jobs ?? []).slice(0, 150);
+      for (const j of jobs) {
+        const d = j.updatedAt ?? j.createdAt;
+        allPostings.push({
+          title: j.title ?? '',
+          company: org,
+          description: `[${org}] ${stripHtml(j.descriptionHtml ?? j.descriptionPlain ?? '')}`,
+          source: 'Ashby',
+          date: d ? new Date(d) : new Date(),
+          url: j.jobUrl ?? j.url,
+        });
+      }
+      boardResults.push({ board: org, ok: true, count: jobs.length });
+    } catch (e) {
+      console.error(`[signals] Ashby org ${org} failed:`, e);
+      boardResults.push({ board: org, ok: false, count: 0 });
     }
   }
-  return out;
+  if (boardResults.every((b) => !b.ok)) throw new Error('All Ashby boards failed');
+  return { postings: allPostings, boardResults };
 }
 
 function countMatches(text: string, aliases: string[]): number {
@@ -168,32 +201,59 @@ export async function ingestLiveSignals(): Promise<IngestResult> {
   const sources: IngestResult['sources'] = [];
   const postings: Posting[] = [];
 
-  const attempts: Array<{ name: string; url: string; kind: string; fn: () => Promise<Posting[]> }> = [
-    { name: 'Remotive Job API', url: REMOTIVE_URL, kind: 'live', fn: fetchRemotive },
-    { name: 'Arbeitnow Job Board API', url: ARBEITNOW_URL, kind: 'live', fn: fetchArbeitnow },
-    {
-      name: 'Greenhouse Job Boards',
-      url: `https://boards-api.greenhouse.io/v1/boards/${GREENHOUSE_BOARDS[0]}/jobs`,
-      kind: 'live',
-      fn: fetchGreenhouse,
-    },
-    {
-      name: 'Ashby Job Boards',
-      url: `https://api.ashbyhq.com/posting-api/job-board/${ASHBY_ORGS[0]}`,
-      kind: 'live',
-      fn: fetchAshby,
-    },
-  ];
+  // Remotive
+  try {
+    const list = await fetchRemotive();
+    postings.push(...list);
+    sources.push({ name: 'Remotive Job API', url: REMOTIVE_URL, postings: list.length, ok: true, kind: 'live' });
+  } catch (e) {
+    console.error('[signals] Remotive failed:', e);
+    sources.push({ name: 'Remotive Job API', url: REMOTIVE_URL, postings: 0, ok: false, kind: 'live' });
+  }
 
-  for (const src of attempts) {
-    try {
-      const list = await src.fn();
-      postings.push(...list);
-      sources.push({ name: src.name, url: src.url, postings: list.length, ok: true, kind: src.kind });
-    } catch (e) {
-      console.error(`[signals] ${src.name} failed:`, e);
-      sources.push({ name: src.name, url: src.url, postings: 0, ok: false, kind: src.kind });
+  // Arbeitnow
+  try {
+    const list = await fetchArbeitnow();
+    postings.push(...list);
+    sources.push({ name: 'Arbeitnow Job Board API', url: ARBEITNOW_URL, postings: list.length, ok: true, kind: 'live' });
+  } catch (e) {
+    console.error('[signals] Arbeitnow failed:', e);
+    sources.push({ name: 'Arbeitnow Job Board API', url: ARBEITNOW_URL, postings: 0, ok: false, kind: 'live' });
+  }
+
+  // Greenhouse (per-board)
+  try {
+    const { postings: ghPostings, boardResults } = await fetchGreenhouse();
+    postings.push(...ghPostings);
+    for (const br of boardResults) {
+      sources.push({
+        name: `Greenhouse · ${br.board}`,
+        url: `https://boards-api.greenhouse.io/v1/boards/${br.board}/jobs`,
+        postings: br.count,
+        ok: br.ok,
+        kind: 'live',
+      });
     }
+  } catch (e) {
+    console.error('[signals] Greenhouse all boards failed:', e);
+    // No individual entries — all boards failed
+  }
+
+  // Ashby (per-board)
+  try {
+    const { postings: ashbyPostings, boardResults } = await fetchAshby();
+    postings.push(...ashbyPostings);
+    for (const br of boardResults) {
+      sources.push({
+        name: `Ashby · ${br.board}`,
+        url: `https://api.ashbyhq.com/posting-api/job-board/${br.board}`,
+        postings: br.count,
+        ok: br.ok,
+        kind: 'live',
+      });
+    }
+  } catch (e) {
+    console.error('[signals] Ashby all orgs failed:', e);
   }
 
   if (postings.length === 0) throw new Error('All live sources failed');
@@ -203,9 +263,14 @@ export async function ingestLiveSignals(): Promise<IngestResult> {
 }
 
 export function computeMomentum(postings: Posting[]): SkillSnapshot[] {
-  const total = postings.length;
-  const dates = postings.map((p) => p.date.getTime()).sort((a, b) => a - b);
-  const midTimestamp = dates[Math.floor(dates.length / 2)] ?? Date.now();
+  // Fixed time windows: keep only postings ≤ 60 days old
+  const now = Date.now();
+  const cutoff = now - 60 * 24 * 60 * 60 * 1000;
+  const filtered = postings.filter((p) => p.date.getTime() >= cutoff);
+  if (filtered.length === 0) throw new Error('No postings within the 60-day window');
+
+  const total = filtered.length;
+  const midBoundary = now - 30 * 24 * 60 * 60 * 1000; // 30 days ago
 
   const results: SkillSnapshot[] = [];
 
@@ -213,13 +278,28 @@ export function computeMomentum(postings: Posting[]): SkillSnapshot[] {
     let count = 0;
     let recent = 0;
     let earlier = 0;
-    for (const p of postings) {
+    const samples: SkillSnapshot['samples'] = [];
+    for (const p of filtered) {
       const text = `${p.title}\n${p.description}`.toLowerCase();
       const n = countMatches(text, skill.aliases);
       if (n === 0) continue;
       count++;
-      if (p.date.getTime() >= midTimestamp) recent++;
+      if (p.date.getTime() >= midBoundary) recent++;
       else earlier++;
+      // Collect up to 3 samples: prefer ones with url, most recent first
+      if (samples.length < 3 && (p.url || samples.length < 2)) {
+        const matchPos = text.indexOf(skill.aliases[0].toLowerCase());
+        const snippet = matchPos >= 0
+          ? p.description.slice(Math.max(0, matchPos - 40), matchPos + 120)
+          : p.description.slice(0, 160);
+        samples.push({
+          title: p.title,
+          company: p.company,
+          url: p.url,
+          date: p.date.toISOString(),
+          snippet: snippet.slice(0, 160),
+        });
+      }
     }
 
     const frequency = (count / total) * 100;
@@ -241,6 +321,7 @@ export function computeMomentum(postings: Posting[]): SkillSnapshot[] {
       frequency: Math.round(frequency * 100) / 100,
       trend: Math.round(trendScore),
       momentum: Math.round(momentum),
+      samples: samples.length > 0 ? samples : undefined,
     });
   }
   return results;

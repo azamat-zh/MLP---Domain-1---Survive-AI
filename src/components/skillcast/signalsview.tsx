@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Database, FileWarning, RadioTower, RefreshCw, ScrollText } from 'lucide-react';
+import { ChevronDown, ChevronRight, Database, ExternalLink, FileWarning, RadioTower, RefreshCw, ScrollText, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,7 @@ export function SignalsView() {
   const t = useT();
   const { data, loading, refreshing, refresh, error } = useSignals();
   const [showSample, setShowSample] = useState(false);
+  const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-8">
@@ -27,10 +28,17 @@ export function SignalsView() {
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{t('sig.method')}</p>
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{t('sig.note')}</p>
         </div>
-        <Button onClick={() => void refresh()} disabled={refreshing} className="gap-2 bg-teal-700 text-white hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500">
-          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden />
-          {refreshing ? t('ov.refreshing') : t('sig.refresh')}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {data?.confidence === 'low' && data.live && (
+            <Badge variant="outline" className="border-amber-400 bg-amber-50/50 text-amber-700 dark:border-amber-600 dark:bg-amber-950/30 dark:text-amber-300">
+              {t('sig.lowConfidence', { n: data.totalPostings })}
+            </Badge>
+          )}
+          <Button onClick={() => void refresh()} disabled={refreshing} className="gap-2 bg-teal-700 text-white hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500">
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} aria-hidden />
+            {refreshing ? t('ov.refreshing') : t('sig.refresh')}
+          </Button>
+        </div>
       </div>
 
       {/* Error state */}
@@ -45,6 +53,16 @@ export function SignalsView() {
             <RefreshCw className="h-4 w-4" aria-hidden />
             Retry
           </Button>
+        </div>
+      )}
+
+      {/* Demo banner when not live */}
+      {data && !data.live && !error && (
+        <div className="mt-4 rounded-lg border border-amber-500/50 bg-amber-500/10 p-4 dark:border-amber-600/50 dark:bg-amber-600/15">
+          <p className="flex items-center gap-2 text-sm font-semibold text-amber-800 dark:text-amber-300">
+            <Database className="h-5 w-5" aria-hidden />
+            {t('sig.demoBanner', { date: new Date(data.fetchedAt).toLocaleString() })}
+          </p>
         </div>
       )}
 
@@ -108,7 +126,7 @@ export function SignalsView() {
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {s.postings > 0 ? `${s.postings} ${t('sig.postings')}` : s.kind}
                 </p>
-                <SourceChip href={s.url}>{s.url}</SourceChip>
+                <SourceChip href={s.ok ? s.url : undefined}>{s.url}</SourceChip>
               </div>
             ))}
             {LIVE_SOURCES.filter((s) => s.kind === 'planned').map((s) => (
@@ -132,11 +150,45 @@ export function SignalsView() {
                     .sort((a, b) => b.momentum - a.momentum)
                     .slice(0, 10)
                     .map((s) => (
-                      <SourceChip key={s.skillSlug}>
+                      <button
+                        key={s.skillSlug}
+                        type="button"
+                        onClick={() => setExpandedSkill(expandedSkill === s.skillSlug ? null : s.skillSlug)}
+                        className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground"
+                      >
+                        {expandedSkill === s.skillSlug ? (
+                          <ChevronDown className="h-3 w-3" aria-hidden />
+                        ) : (
+                          <ChevronRight className="h-3 w-3" aria-hidden />
+                        )}
                         {SKILL_MAP[s.skillSlug]?.name ?? s.skillSlug}: {s.momentum}
-                      </SourceChip>
+                        <span className="text-[10px] opacity-70">({s.postings} {t('sig.postings').split(' ')[0]})</span>
+                      </button>
                     ))}
                 </div>
+                {expandedSkill && data && (
+                  <div className="mt-3 space-y-2">
+                    {(() => {
+                      const snap = data.snapshots.find((s) => s.skillSlug === expandedSkill);
+                      if (!snap || !snap.samples || snap.samples.length === 0) {
+                        return <p className="text-xs text-muted-foreground">{t('sig.noEvidence')}</p>;
+                      }
+                      return snap.samples.map((sample, i) => (
+                        <div key={i} className="rounded-lg border p-2 text-xs">
+                          <p className="font-medium text-sm">{sample.title}</p>
+                          <p className="text-muted-foreground">{sample.company}</p>
+                          <p className="text-muted-foreground">{new Date(sample.date).toLocaleDateString()}</p>
+                          {sample.url ? (
+                            <a href={sample.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-teal-700 dark:text-teal-400">
+                              <ExternalLink className="h-3 w-3" aria-hidden /> View posting
+                            </a>
+                          ) : null}
+                          <p className="mt-1 italic text-muted-foreground/70">{sample.snippet}</p>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
