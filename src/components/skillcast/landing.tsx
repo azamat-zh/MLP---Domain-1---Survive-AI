@@ -1,20 +1,14 @@
 'use client';
 
 import {
-  ArrowRight, BadgeCheck, BadgeCheck as VerifyIcon, Building2, ExternalLink,
-  FileCheck2, GitBranch, GraduationCap, Radar, Scale, ShieldCheck, Sparkles, User,
+  ArrowRight, BadgeCheck, Building2, FileCheck2, GitBranch, GraduationCap, Radar, Scale, ShieldCheck, Sparkles, User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  Accordion, AccordionContent, AccordionItem, AccordionTrigger,
-} from '@/components/ui/accordion';
-import { FACTS, FACTS_HEADLINE, FACT_MAP, FACT_CHECKED_ON } from '@/data/facts';
 import { useSkillCast } from '@/lib/store';
 import { SdgBadge, useT } from './shared';
 import { SDG_TITLES } from '@/lib/i18n';
-import type { Lang } from '@/lib/types';
 
 export function Landing() {
   const t = useT();
@@ -23,8 +17,6 @@ export function Landing() {
     ? 'Discover your strengths, understand how AI is transforming careers, and build a personalized pathway toward your future.'
     : t('landing.subtitle');
   const primaryCta = lang === 'en' ? 'Get Started' : t('landing.cta');
-
-  const headlineStats = FACTS_HEADLINE.map((id) => FACT_MAP[id]).filter(Boolean);
 
   const entryCards = [
     { type: 'individual' as const, icon: User, title: 'Individual — My Career', desc: 'For students, working professionals, unemployed individuals, and career changers.' },
@@ -104,96 +96,7 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Why now — fact-checked, every stat linked to its source */}
-      <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
-        <h2 className="text-lg font-semibold">{t('landing.stats.title')}</h2>
-        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{t('landing.stats.sourced', { date: FACT_CHECKED_ON })}</p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {headlineStats.map((f) => (
-            <Card key={f.id} className="border-l-4 border-l-indigo-400">
-              <CardHeader className="pb-2">
-            <CardTitle className="text-3xl font-bold text-indigo-700 dark:text-indigo-200">{f.value}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex h-full flex-col justify-between gap-2">
-                <p className="text-sm text-muted-foreground">{f.claim[lang as Lang] ?? f.claim.en}</p>
-                <a
-                  href={f.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-700 hover:underline dark:text-indigo-200"
-                >
-                  <ExternalLink className="h-3 w-3" aria-hidden />
-                  {f.publisher} · {f.date}
-                </a>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* Fact-check ledger */}
-      <section className="mx-auto mt-8 max-w-6xl px-4 sm:px-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <FileCheck2 className="h-5 w-5 text-blue-700 dark:text-blue-400" aria-hidden />
-              {t('facts.title')}
-            </CardTitle>
-            <CardDescription>{t('facts.desc', { date: FACT_CHECKED_ON })}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Accordion type="single" collapsible className="w-full">
-              {FACTS.map((f) => (
-                <AccordionItem key={f.id} value={f.id}>
-                  <AccordionTrigger className="py-2 text-left text-sm hover:no-underline">
-                    <span className="flex flex-1 flex-wrap items-center gap-2 pr-2">
-                      <span className="font-semibold text-indigo-700 dark:text-indigo-200">{f.value}</span>
-                      <span className="min-w-0 flex-1 truncate text-left">
-                        {f.claim[lang as Lang] ?? f.claim.en}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className={
-                          f.status === 'verified'
-                            ? 'shrink-0 gap-1 border-emerald-400 text-emerald-700 dark:text-emerald-200'
-                            : 'shrink-0 gap-1 border-amber-400 text-amber-700 dark:text-amber-200'
-                        }
-                      >
-                        {f.status === 'verified' ? (
-                          <><VerifyIcon className="h-3 w-3" aria-hidden /> {t('facts.verified')}</>
-                        ) : (
-                          <>{t('facts.indicative')}</>
-                        )}
-                      </Badge>
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent className="space-y-2">
-                    <p className="text-xs text-muted-foreground">
-                      {t('facts.source')}: <span className="font-medium text-foreground">{f.publisher}</span> — {f.title} · {f.date}
-                    </p>
-                    {f.note && (
-                      <p className="rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
-                        {f.note[lang as Lang] ?? f.note.en}
-                      </p>
-                    )}
-                    <a
-                      href={f.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex max-w-full items-center gap-1 truncate text-xs font-medium text-indigo-700 hover:underline dark:text-indigo-200"
-                    >
-                      <ExternalLink className="h-3 w-3 shrink-0" aria-hidden />
-                      <span className="truncate">{f.url}</span>
-                    </a>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* How it works */}
+{/* How it works */}
       <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
         <h2 className="text-lg font-semibold">{t('landing.steps.title')}</h2>
         <ol className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -255,9 +158,6 @@ export function Landing() {
             <Badge variant="outline" className="border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">2 scenarios</Badge>
             <Badge variant="outline" className="border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">4 languages: EN · BM · 中文 · RU</Badge>
             <Badge variant="outline" className="border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">SDG ledger on every role</Badge>
-            <Badge variant="outline" className="gap-1 border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
-              <FileCheck2 className="h-3 w-3" aria-hidden /> {t('facts.badge')}
-            </Badge>
           </CardContent>
         </Card>
       </section>
