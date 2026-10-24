@@ -1,19 +1,26 @@
-# Team information
-Team: MLP
-Challenge: Aiversecity Future-Ready Workforce
-Domain: Domain 1 — Skillcast
-SDG-Track(1-17): 4 — Quality Education,8 — Decent Work and Economic Growth,10 — Reduced Inequalities
-Team Leader: Omirzak Aiym
-University: Xiament University Malaysia 
-Number of members: 5
+## Team Information
 
-# Links
-GitHub Repository: https://github.com/azamat-zh/MLP---Domain-1---Survive-AI
-Replit project:https://replit.com/t/mlp/repls/MLP-Domain-1-Survive-AI
-Live Demo: https://skillcast-tau.vercel.app/
-Runpod endpoint: https://api.runpod.ai/v2/3sz0imio0udhna/runsync
-Slide deck: https://canva.link/sexmhkzmvoduxpe
-Demo video:
+| Field | Details |
+|---|---|
+| Team | MLP |
+| Challenge | Aiversecity Future-Ready Workforce |
+| Domain | Domain 1 — Survive AI |
+| SDG Tracks | **4:** Quality Education · **8:** Decent Work and Economic Growth · **10:** Reduced Inequalities |
+| Team Leader | Omirzak Aiym |
+| University | Xiamen University Malaysia |
+| Team Size | 5 members |
+
+## Project Links
+
+| Resource | Link |
+|---|---|
+| GitHub Repository | [View source code](https://github.com/azamat-zh/MLP---Domain-1---Survive-AI) |
+| Replit Project | [Open development project](https://replit.com/t/mlp/repls/MLP-Domain-1-Survive-AI) |
+| Live Demo | [Launch SkillCast](https://skillcast-tau.vercel.app/) |
+| RunPod Endpoint | [Inference endpoint — authentication required](https://api.runpod.ai/v2/3sz0imio0udhna/runsync) |
+| Slide Deck | [View presentation](https://canva.link/sexmhkzmvoduxpe) |
+| Pitch & Demo Video | To be added |
+| Submission Documents | [View proposal and supporting evidence](./submission/) |
 
 ## How We Used Replit and RunPod
 
