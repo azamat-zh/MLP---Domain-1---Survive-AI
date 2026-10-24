@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { useTheme } from 'next-themes';
 import { CloudSun, Languages, Moon, RotateCcw, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,7 @@ export function Header() {
   const { view, setView, lang, setLang, onboarded, resetDemo } = useSkillCast();
   const { theme, setTheme } = useTheme();
   const mounted = useMounted();
+  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
   const landing = view === 'landing';
 
   const views: Array<{ id: View; label: string; enabled: boolean }> = [

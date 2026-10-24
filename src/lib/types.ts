@@ -156,6 +156,16 @@ export interface SkillSnapshot {
   frequency: number;
   trend: number;
   momentum: number;
+  samples?: Array<{
+    title: string;
+    company: string;
+    url?: string;
+    date: string;
+    /** Source-supplied metadata only; legacy date may be an ingestion fallback. */
+    sourceDate?: string;
+    sourceDateKind?: 'published' | 'updated';
+    snippet: string;
+  }>;
 }
 
 export interface SignalsPayload {
@@ -163,6 +173,7 @@ export interface SignalsPayload {
   fetchedAt: string;
   live: boolean;
   totalPostings: number;
+  confidence: 'ok' | 'low';
   sources: Array<{ name: string; url: string; postings: number; ok: boolean; kind: string }>;
   note?: string;
   snapshots: SkillSnapshot[];

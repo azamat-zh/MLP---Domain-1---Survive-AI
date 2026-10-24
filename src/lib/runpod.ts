@@ -7,7 +7,7 @@
 // environment. Without a key every caller falls back deterministically —
 // the core never depends on the LLM being reachable.
 
-const ENDPOINT_ID = process.env.RUNPOD_ENDPOINT_ID ?? '3sz0imio0udhna';
+const ENDPOINT_ID = process.env.RUNPOD_ENDPOINT_ID ?? null;
 
 export const RUNPOD_MODEL = 'Qwen2.5-7B-Instruct (vLLM on RunPod)';
 

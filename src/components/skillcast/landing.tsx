@@ -13,15 +13,12 @@ import { SDG_TITLES } from '@/lib/i18n';
 export function Landing() {
   const t = useT();
   const { setView, setUserType, onboarded, lang } = useSkillCast();
-  const heroDescription = lang === 'en'
-    ? 'Discover your strengths, understand how AI is transforming careers, and build a personalized pathway toward your future.'
-    : t('landing.subtitle');
-  const primaryCta = lang === 'en' ? 'Get Started' : t('landing.cta');
 
-  const entryCards = [
-    { type: 'individual' as const, icon: User, title: 'Individual — My Career', desc: 'For students, working professionals, unemployed individuals, and career changers.' },
-    { type: 'employer' as const, icon: Building2, title: 'Employer / HR — My Team', desc: 'For companies and HR professionals who want to understand workforce skills and future skill gaps.' },
-  ];
+  const navigate = (type: 'individual' | 'employer' | 'institution') => {
+    setUserType(type);
+    if (type === 'individual' && onboarded) setView('dashboard');
+    else setView('onboarding');
+  };
 
   const journey = [
     { icon: FileCheck2, title: t('landing.step1'), desc: t('landing.step1d') },
@@ -37,9 +34,9 @@ export function Landing() {
   };
 
   return (
-    <div className="skillcast-landing min-h-screen overflow-hidden pb-16">
+    <div className="skillcast-landing overflow-hidden">
       {/* Hero */}
-      <section className="skillcast-hero relative isolate flex min-h-[min(720px,calc(100svh-64px))] items-center justify-center overflow-hidden px-5 py-20 sm:px-10 lg:min-h-[700px]">
+      <section className="skillcast-hero relative isolate flex min-h-[100svh] items-center justify-center overflow-hidden px-5 py-20 sm:px-10">
         <div className="skillcast-hero-glow" aria-hidden="true" />
         <div className="skillcast-bubble skillcast-bubble--one" aria-hidden="true" />
         <div className="skillcast-bubble skillcast-bubble--two" aria-hidden="true" />
@@ -53,19 +50,16 @@ export function Landing() {
             {t('landing.badge')}
           </Badge>
           <h1 className="mx-auto max-w-4xl text-4xl font-semibold leading-[1.08] tracking-[-0.04em] text-balance text-white sm:text-6xl lg:text-7xl">
-            {lang === 'en' ? <>Your Future.<br />Your Skills.<br /><span className="text-blue-300">Your Path.</span></> : t('landing.title')}
+            {t('landing.title')}
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-blue-100/70 sm:text-lg sm:leading-8">{heroDescription}</p>
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-blue-100/70 sm:text-lg sm:leading-8">{t('landing.subtitle')}</p>
           <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
             <Button
               size="lg"
-              onClick={() => {
-                setUserType(null);
-                setView('onboarding');
-              }}
+              onClick={() => navigate('individual')}
               className="h-12 gap-2 rounded-full border border-indigo-200/25 bg-gradient-to-r from-indigo-500 to-violet-500 px-7 text-white shadow-[0_10px_40px_rgba(91,91,220,.38)] transition-transform hover:-translate-y-0.5 hover:from-indigo-400 hover:to-violet-400"
             >
-              {primaryCta}
+              {t('landing.cta')}
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Button>
           </div>
@@ -73,30 +67,7 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Two ways in */}
-      <section className="mx-auto mt-4 max-w-6xl px-4 pt-16 sm:px-6 lg:pt-20">
-        <h2 className="text-xl font-semibold tracking-tight">Two Ways to Get Started</h2>
-        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">Choose a career forecast for yourself or a skills view for your team.</p>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {entryCards.map((c) => (
-            <button
-              key={c.type}
-              type="button"
-              onClick={() => go(c.type)}
-              className="group flex h-full flex-col rounded-2xl border border-blue-100 bg-white p-5 text-left shadow-sm transition-all hover:-translate-y-1 hover:border-blue-300 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-700 dark:hover:bg-slate-800"
-            >
-              <span className="flex items-center justify-between">
-                <c.icon className="h-7 w-7 text-blue-600 dark:text-blue-400" aria-hidden />
-                <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
-              </span>
-              <span className="mt-3 font-semibold">{c.title}</span>
-              <span className="mt-1 text-sm text-muted-foreground">{c.desc}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-{/* How it works */}
+      {/* How it works */}
       <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
         <h2 className="text-lg font-semibold">{t('landing.steps.title')}</h2>
         <ol className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

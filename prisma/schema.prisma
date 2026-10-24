@@ -30,6 +30,7 @@ model SignalSnapshot {
   frequency       Float // % of postings mentioning the skill
   trend           Float // recent vs earlier ratio score 0-100
   momentum        Float // blended 0-100
+  samples         Json?    // [{ title, company, url?, date, snippet }] up to 3 per skill
   createdAt       DateTime  @default(now())
 
   @@unique([runId, skillSlug])

@@ -33,6 +33,7 @@ export default function Home() {
 
 function Shell() {
   const { view } = useSkillCast();
+  const t = useT();
   const mounted = useMounted();
 
   return (
@@ -40,7 +41,7 @@ function Shell() {
       <Header />
       <main className="flex-1">
         {!mounted ? (
-          <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-label="Loading">
+          <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-label={t('hr.loading')}>
             <CloudSun className="h-10 w-10 animate-pulse text-teal-600 dark:text-teal-400" aria-hidden />
           </div>
         ) : view === 'landing' ? (
@@ -73,8 +74,7 @@ function Footer() {
         </p>
         <p className="flex items-start gap-1.5">
           <Scale className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-          Aiversecity — Future-Ready Workforce · SDG 4 Quality Education · targets 4.3 · 4.4 · 8.2 · 8.5 ·
-          Human-in-command: AI supports career decisions, people make them.
+          {t('hr.footer.statement')}
         </p>
       </div>
     </footer>
