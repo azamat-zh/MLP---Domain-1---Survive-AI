@@ -19,7 +19,7 @@
 | Live Demo | [Launch SkillCast](https://skillcast-tau.vercel.app/) |
 | RunPod Endpoint | [Inference endpoint — authentication required](https://api.runpod.ai/v2/3sz0imio0udhna/runsync) |
 | Slide Deck | [View presentation](https://canva.link/sexmhkzmvoduxpe) |
-| Pitch & Demo Video | To be added |
+| Pitch & Demo Video | View video|(https://youtu.be/_qiuPS6V_Fo) |
 | Submission Documents | [View proposal and supporting evidence](./submission/) |
 
 ## How We Used Replit and RunPod
