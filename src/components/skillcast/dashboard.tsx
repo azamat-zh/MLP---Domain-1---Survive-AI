@@ -264,33 +264,102 @@ function OverviewTab({ matches }: { matches: ReturnType<typeof matchAll> }) {
       </div>
 
       {/* Changelog */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <ScrollText className="h-5 w-5" aria-hidden /> {t('ov.changelog.title')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="max-h-72 overflow-y-auto">
-          <ol className="relative space-y-3 border-l border-border pl-4">
-            {data?.changelog?.map((c) => (
-              <li key={c.id} className="text-sm">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant={c.live ? 'default' : 'secondary'} className="text-[10px]">{c.version}</Badge>
-                  <span className="text-muted-foreground">{new Date(c.createdAt).toLocaleTimeString()}</span>
-                </div>
-                <p className="mt-0.5">{c.summary}</p>
-                {c.details.movers.length > 0 && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {c.details.movers
-                      .map((m) => `${SKILL_MAP[m.skill]?.name ?? m.skill} ${m.delta >= 0 ? '↑' : '↓'}${Math.abs(m.delta)}`)
-                      .join(' · ')}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ol>
-        </CardContent>
-      </Card>
+      
+
+{/* Forecast Changelog */}
+<Card>
+  <CardHeader>
+    <CardTitle className="flex items-center gap-2">
+      <ScrollText className="h-5 w-5" />
+      Forecast Changelog
+    </CardTitle>
+    <CardDescription>
+      Historical changes in market skill demand
+      based on recorded signal updates.
+    </CardDescription>
+  </CardHeader>
+
+  <CardContent>
+    {(!data?.changelog || data.changelog.length === 0) ? (
+      <p className="text-sm text-muted-foreground">
+        No market updates recorded yet.
+      </p>
+    ) : (
+      <div className="space-y-6">
+        {data.changelog.map((entry) => (
+          <div key={entry.id} className="space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-semibold">
+                  {entry.summary}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(entry.createdAt).toLocaleString()}
+                </p>
+              </div>
+              <Badge variant={entry.live ? 'default' : 'secondary'}>
+                {entry.live ? 'Live' : 'Cached'}
+              </Badge>
+            </div>
+
+            <div className="overflow-x-auto rounded-lg border">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Skill</th>
+                    <th className="px-4 py-3 text-center">Previous</th>
+                    <th className="px-4 py-3 text-center">Current</th>
+                    <th className="px-4 py-3 text-center">Change</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {entry.details.movers.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-4 py-5 text-center text-muted-foreground"
+                      >
+                        No comparable momentum changes
+                        recorded for this update.
+                      </td>
+                    </tr>
+                  ) : (
+                    entry.details.movers.map((m) => (
+                      <tr key={m.skill} className="border-t">
+                        <td className="px-4 py-3 font-medium">
+                          {SKILL_MAP[m.skill]?.name ?? m.skill}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {m.momentum - m.delta}
+                        </td>
+                        <td className="px-4 py-3 text-center font-semibold">
+                          {m.momentum}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={
+                            m.delta > 0
+                              ? 'text-emerald-500'
+                              : m.delta < 0
+                                ? 'text-rose-500'
+                                : 'text-muted-foreground'
+                          }>
+                            {m.delta > 0 ? `↑ +${m.delta}` :
+                             m.delta < 0 ? `↓ ${m.delta}` : '→ 0'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </CardContent>
+</Card>
+
 
       {/* Monthly email preview (simulated) */}
       <Dialog open={emailOpen} onOpenChange={setEmailOpen}>

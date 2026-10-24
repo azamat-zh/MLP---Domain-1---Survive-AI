@@ -9,6 +9,7 @@ import type { SignalsPayload } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
+
 export async function GET() {
   try {
     const runId = await ensureFreshRun(false);
