@@ -15,7 +15,7 @@
 | Resource | Link |
 |---|---|
 | GitHub Repository | [View source code](https://github.com/azamat-zh/MLP---Domain-1---Survive-AI) |
-| Replit Project | [Open development project](https://replit.com/t/mlp/repls/MLP-Domain-1-Survive-AI) |
+| Replit Project | [Open development project](https://replit.com/join?utm_source=collab_invite_link&utm_medium=referral&utm_campaign=collaborative_workspace&utm_content=c3a0b4a1-9d81-4c88-abd4-9553fb609a79#t=fffzjygyswmgsnj-mlp) |
 | Live Demo | [Launch SkillCast](https://skillcast-tau.vercel.app/) |
 | RunPod Endpoint | [Inference endpoint — authentication required](https://api.runpod.ai/v2/3sz0imio0udhna/runsync) |
 | Slide Deck | [View presentation](https://canva.link/sexmhkzmvoduxpe) |
