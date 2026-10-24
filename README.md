@@ -1,3 +1,31 @@
+# Team information
+Team: MLP
+Challenge: Aiversecity Future-Ready Workforce
+Domain: Domain 1 — Skillcast
+SDG-Track(1-17): 4 — Quality Education,8 — Decent Work and Economic Growth,10 — Reduced Inequalities
+Team Leader: Omirzak Aiym
+University: Xiament University Malaysia 
+Number of members: 5
+
+# Links
+GitHub Repository: https://github.com/azamat-zh/MLP---Domain-1---Survive-AI
+Replit project:https://replit.com/t/mlp/repls/MLP-Domain-1-Survive-AI
+Live Demo: https://skillcast-tau.vercel.app/
+Runpod endpoint: https://api.runpod.ai/v2/3sz0imio0udhna/runsync
+Slide deck: https://canva.link/sexmhkzmvoduxpe
+Demo video:
+
+## How We Used Replit and RunPod
+
+**Replit:** We used Replit’s development environment and AI agent extensively to generate and edit application code, implement interfaces, and debug the prototype. The team directed development and tested the resulting user journeys.
+
+**RunPod:** We deployed Qwen2.5-7B-Instruct through vLLM on a serverless GPU endpoint. The model supports two application functions:
+- Extracting proposed profile information from de-identified CV text.
+- Explaining career-match results using supplied scores and facts.
+Users review and confirm extracted profile information. Matching scores, skill gaps and Harada plans are calculated through deterministic rules. Rule-based extraction and template explanations provide fallbacks when model inference is unavailable.
+Supporting evidence is available in the [submission folder](./submission/).
+
+
 # SkillCast
 
 A weather forecast for your career in the AI era. SkillCast is a proof-of-concept (POC) built for the Aiversecity Future-Ready Workforce challenge (SDG "Survive AI" domain). It tracks live job-market signals, predicts rising and declining skills, matches a profile to future roles with explainable scores, builds a Duolingo-style reskilling pathway from curated courses, and maps every role to the UN SDGs.
@@ -6,7 +34,7 @@ Key characteristics:
 
 - Deterministic core: all scoring and matching math is published, client-side, and deterministic. The LLM is used only for narration and CV-extraction proposals, always behind a deterministic fallback and a human confirm step.
 - Synthetic data only: profiles, team and sample CV are fabricated (competition rule); live signals come from four free job APIs (Remotive, Arbeitnow, Greenhouse, Ashby — see `docs/ai-call-sites.md`), with curated fallback sources.
-- Privacy by design: the uploaded CV is scrubbed in the browser; only de-identified text reaches the self-hosted extraction endpoint (on a run-of-the-mill GPU cloud, no prompt persistence), and only skill levels persist.
+- Privacy by design: the uploaded CV is scrubbed in the browser; only de-identified text reaches the self-hosted extraction endpoint (on a run-of-the-mill GPU cloud, no prompt persistence), and save in profile and progress to localStorage.
 
 ## Features
 
@@ -14,7 +42,7 @@ Key characteristics:
 - Explainable role matching with a published formula (overlap, transferable, experience, interest)
 - AI-assisted CV extraction into a strict JSON schema (self-hosted Qwen on RunPod, deterministic in-browser fallback, human confirmation)
 - Reskilling pathway planner from curated courses (course hours vs weekly budget)
-- Harada transferability matrix and team-gap heatmap (employer view)
+- Personalised Harada roadmap with eight learning areas, practical tasks, curated course links, progress tracking and study-time estimates.
 - UN SDG ledger mapping every role to SDG targets
 - i18n: English, Bahasa Malaysia, Chinese, Russian
 - Dark theme by default, light one click away
@@ -40,14 +68,15 @@ Node.js is not required to run the app; Bun executes the scripts. The `npx`-base
 Prerequisites: Bun installed (verify with `bun --version`), and Git.
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/azamat-zh/MLP---Domain-1---Survive-AI.git
 cd MLP---Domain-1---Survive-AI
 bun install
-bun run db:push      # create/update the SQLite schema in db/custom.db
-bun run dev          # http://localhost:3000
+bun run db:generate
+bun run db:push       # create/update the SQLite schema in db/custom.db
+bun run dev            # http://localhost:3000
 ```
 
-Open http://localhost:3000. The onboarding flow (landing -> CV upload -> dashboard) is the main golden path; it can also be exercised with the bundled sample CV.
+Open http://localhost:3000. The onboarding flow (landing -> CV upload -> dashboard) is the main golden path; it can also be exercised with the bundled sample CV. Otherwise we can just directly open our website using link above.
 
 ### Environment Variables
 
@@ -90,7 +119,7 @@ Without `CRON_SECRET` set, the endpoint returns 501 (Not Implemented).
 
 ### Connect Runpod (optional — AI-assisted CV extraction)
 
-Runpod powers the only AI call site in the app: CV → structured profile extraction
+Runpod powers /api/extract-cv and  /api/coach call site in the app: CV → structured profile extraction
 (`/api/extract-cv`), served by the shared team endpoint `skillcast-qwen`
 (self-hosted Qwen2.5-7B-Instruct on vLLM, region EU-RO-1). Without a key the app
 is fully functional — onboarding falls back to deterministic in-browser skill
